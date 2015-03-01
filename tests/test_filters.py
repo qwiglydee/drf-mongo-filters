@@ -3,7 +3,9 @@ from unittest import mock
 from django.http import QueryDict
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError
+from rest_framework_mongoengine.fields import ObjectIdField
 
+from drf_mongo_filters import filters
 from drf_mongo_filters.filters import Filter
 
 class BaseTests(TestCase):
@@ -121,3 +123,39 @@ class BaseTests(TestCase):
         flt.bind('foo', self.fs)
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'bar__baz': "Foo"})
+
+
+class TypedTests(TestCase):
+    def _test_field(self, flt_class, fld_class, **kwargs):
+        flt = flt_class(**kwargs)
+        self.assertIsInstance(flt.field, fld_class)
+
+    def test_Boolean(self):
+        self._test_field(filters.BooleanFilter,fields.NullBooleanField)
+
+    def test_Char(self):
+        self._test_field(filters.CharFilter,fields.CharField)
+
+    def test_UUID(self):
+        self._test_field(filters.UUIDFilter,fields.UUIDField)
+
+    def test_Integer(self):
+        self._test_field(filters.IntegerFilter,fields.IntegerField)
+
+    def test_Float(self):
+        self._test_field(filters.FloatFilter,fields.FloatField)
+
+    def test_DateTime(self):
+        self._test_field(filters.DateTimeFilter,fields.DateTimeField)
+
+    def test_Date(self):
+        self._test_field(filters.DateFilter,fields.DateField)
+
+    def test_Time(self):
+        self._test_field(filters.TimeFilter,fields.TimeField)
+
+    def test_Choice(self):
+        self._test_field(filters.ChoiceFilter,fields.ChoiceField,choices=[])
+
+    def test_ObjectId(self):
+        self._test_field(filters.ObjectIdFilter, ObjectIdField)

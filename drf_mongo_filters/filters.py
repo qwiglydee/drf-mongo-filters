@@ -1,5 +1,6 @@
-from rest_framework import fields
 from mongoengine.queryset.transform import MATCH_OPERATORS
+from rest_framework import fields
+from rest_framework_mongoengine import fields as mongofields
 
 from . import fields as comp_fields
 
@@ -35,12 +36,16 @@ class Filter():
             raise TypeError("invalid lookup type: " + repr(self.lookup_type))
 
         self.parent = None
-        kwargs['required'] = False
-        kwargs['allow_null'] = True
-        self.field = self.field_class(**kwargs)
+        self.field = self.make_field(**kwargs)
 
         self._creation_order = Filter._creation_counter
         Filter._creation_counter += 1
+
+    def make_field(self, **kwargs):
+        """ create serializer field """
+        kwargs['required'] = False
+        kwargs['allow_null'] = True
+        return self.field_class(**kwargs)
 
     def bind(self, name, filterset):
         """ attach filter to filterset
@@ -71,3 +76,36 @@ class Filter():
         if self.lookup_type != '=':
             target += '__' + self.lookup_type
         return { target: value }
+
+class BooleanFilter(Filter):
+    field_class = fields.NullBooleanField
+    def make_field(self, **kwargs):
+        kwargs['required'] = False
+        return self.field_class(**kwargs)
+
+class CharFilter(Filter):
+    field_class = fields.CharField
+
+class UUIDFilter(Filter):
+    field_class = fields.UUIDField
+
+class IntegerFilter(Filter):
+    field_class = fields.IntegerField
+
+class FloatFilter(Filter):
+    field_class = fields.FloatField
+
+class DateTimeFilter(Filter):
+    field_class = fields.DateTimeField
+
+class DateFilter(Filter):
+    field_class = fields.DateField
+
+class TimeFilter(Filter):
+    field_class = fields.TimeField
+
+class ChoiceFilter(Filter):
+    field_class = fields.ChoiceField
+
+class ObjectIdFilter(Filter):
+    field_class = mongofields.ObjectIdField
