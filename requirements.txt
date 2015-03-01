@@ -1,0 +1,4 @@
+Django == 1.7.*
+mongoengine == 0.8.*
+djangorestframework == 3.0.*
+django-rest-framework-mongoengine == 2.*
