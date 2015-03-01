@@ -5,8 +5,9 @@ from rest_framework import fields
 from rest_framework.exceptions import ValidationError
 from rest_framework_mongoengine.fields import ObjectIdField
 
-from drf_mongo_filters import filters
+from drf_mongo_filters.fields import ListField, DictField
 from drf_mongo_filters.filters import Filter
+from drf_mongo_filters import filters
 
 class BaseTests(TestCase):
     @classmethod
@@ -164,3 +165,18 @@ class TypedTests(TestCase):
 
     def test_ObjectId(self):
         self._test_field(filters.ObjectIdFilter, ObjectIdField)
+
+    def test_List(self):
+        self._test_field(filters.ListFilter, ListField)
+
+    def test_Any(self):
+        fld = self._test_field(filters.AnyFilter, ListField)
+        self.assertEqual(fld.lookup_type, 'in')
+
+    def test_None(self):
+        fld = self._test_field(filters.NoneFilter, ListField)
+        self.assertEqual(fld.lookup_type, 'nin')
+
+    def test_All(self):
+        fld = self._test_field(filters.AllFilter, ListField)
+        self.assertEqual(fld.lookup_type, 'all')

@@ -1,8 +1,8 @@
 from mongoengine.queryset.transform import MATCH_OPERATORS
 from rest_framework import fields
-from rest_framework_mongoengine import fields as mongofields
+from rest_framework_mongoengine.fields import ObjectIdField
 
-from . import fields as comp_fields
+from .fields as ListField, DictField
 
 class Filter():
     """ filter base class
@@ -111,4 +111,20 @@ class ChoiceFilter(Filter):
     field_class = fields.ChoiceField
 
 class ObjectIdFilter(Filter):
-    field_class = mongofields.ObjectIdField
+    field_class = ObjectIdField
+
+class ListFilter(Filter):
+    " base filter to compare with list of values "
+    field_class = ListField
+
+class AnyFilter(ListFilter):
+    " attribute value is in list of provided values "
+    lookup_type = 'in'
+
+class NoneFilter(ListFilter):
+    " attribute value is not in list of provided values "
+    lookup_type = 'nin'
+
+class AllFilter(ListFilter):
+    " attribute value contains all of provided values "
+    lookup_type = 'all'
