@@ -2,7 +2,7 @@ from mongoengine.queryset.transform import MATCH_OPERATORS
 from rest_framework import fields
 from rest_framework_mongoengine.fields import ObjectIdField
 
-from .fields as ListField, DictField
+from .fields import ListField, DictField
 
 class Filter():
     """ filter base class
@@ -31,9 +31,6 @@ class Filter():
         self.name = name
         if lookup_type:
             self.lookup_type = lookup_type
-
-        if self.lookup_type != '=' and self.lookup_type not in MATCH_OPERATORS:
-            raise TypeError("invalid lookup type: " + repr(self.lookup_type))
 
         self.parent = None
         self.field = self.make_field(**kwargs)
@@ -71,6 +68,9 @@ class Filter():
         """ return filtering params """
         if value is None:
             return {}
+
+        if self.lookup_type != '=' and self.lookup_type not in MATCH_OPERATORS:
+            raise TypeError("invalid lookup type: " + repr(self.lookup_type))
 
         target = "__".join(self.field.source_attrs)
         if self.lookup_type != '=':
@@ -128,3 +128,34 @@ class NoneFilter(ListFilter):
 class AllFilter(ListFilter):
     " attribute value contains all of provided values "
     lookup_type = 'all'
+
+class DictFilter(Filter):
+    " base filter to compare with dict of values "
+    field_class = DictField
+
+class RangeFilter(DictFilter):
+    " takes foo.min&foo.max and compares with gte/lte"
+    lookup_type = ('gte', 'lte')
+
+    def filter_params(self, value):
+        """ return filtering params """
+        if value is None:
+            return {}
+
+        for o in self.lookup_type:
+            if o not in MATCH_OPERATORS:
+                raise TypeError("invalid lookup type: " + repr(self.lookup_type))
+
+        val_min = value.get('min', None)
+        val_max = value.get('max', None)
+
+        target = "__".join(self.field.source_attrs)
+
+        params = {}
+
+        if val_min is not None:
+            params[target+"__"+self.lookup_type[0]] = val_min
+        if val_max is not None:
+            params[target+"__"+self.lookup_type[1]] = val_max
+
+        return params

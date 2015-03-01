@@ -166,17 +166,36 @@ class TypedTests(TestCase):
     def test_ObjectId(self):
         self._test_field(filters.ObjectIdFilter, ObjectIdField)
 
-    def test_List(self):
-        self._test_field(filters.ListFilter, ListField)
+
+class ListTests(TestCase):
+    def test_Base(self):
+        flt = filters.ListFilter()
+        self.assertIsInstance(flt.field, ListField)
 
     def test_Any(self):
-        fld = self._test_field(filters.AnyFilter, ListField)
-        self.assertEqual(fld.lookup_type, 'in')
+        flt = filters.AnyFilter()
+        self.assertIsInstance(flt.field, ListField)
+        self.assertEqual(flt.lookup_type, 'in')
 
     def test_None(self):
-        fld = self._test_field(filters.NoneFilter, ListField)
-        self.assertEqual(fld.lookup_type, 'nin')
+        flt = filters.NoneFilter()
+        self.assertIsInstance(flt.field, ListField)
+        self.assertEqual(flt.lookup_type, 'nin')
 
     def test_All(self):
-        fld = self._test_field(filters.AllFilter, ListField)
-        self.assertEqual(fld.lookup_type, 'all')
+        flt = filters.AllFilter()
+        self.assertIsInstance(flt.field, ListField)
+        self.assertEqual(flt.lookup_type, 'all')
+
+
+class DictTests(TestCase):
+    def test_Base(self):
+        flt = filters.DictFilter()
+        self.assertIsInstance(flt.field, DictField)
+
+    def test_Range(self):
+        flt = filters.RangeFilter()
+        flt.bind('foo', mock.Mock())
+        self.assertIsInstance(flt.field, DictField)
+        params = flt.filter_params({ 'min':3, 'max':7 })
+        self.assertEqual(params, { 'foo__gte': 3, 'foo__lte': 7})
