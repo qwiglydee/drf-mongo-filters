@@ -129,9 +129,14 @@ class TypedTests(TestCase):
     def _test_field(self, flt_class, fld_class, **kwargs):
         flt = flt_class(**kwargs)
         self.assertIsInstance(flt.field, fld_class)
+        return flt
 
     def test_Boolean(self):
         self._test_field(filters.BooleanFilter,fields.NullBooleanField)
+
+    def test_Exists(self):
+        flt = self._test_field(filters.BooleanFilter,fields.NullBooleanField)
+        self.assertEqual(flt.lookup_type, 'exists')
 
     def test_Char(self):
         self._test_field(filters.CharFilter,fields.CharField)

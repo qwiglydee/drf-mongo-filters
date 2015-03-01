@@ -83,6 +83,9 @@ class BooleanFilter(Filter):
         kwargs['required'] = False
         return self.field_class(**kwargs)
 
+class ExistsFilter(BooleanFilter):
+    lookup_type = 'exists'
+
 class CharFilter(Filter):
     field_class = fields.CharField
 
