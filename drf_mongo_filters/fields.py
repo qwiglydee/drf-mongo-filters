@@ -43,7 +43,7 @@ class DictField(fields.DictField):
 
     def to_internal_value(self, data):
         if not hasattr(data, '__getitem__') or not hasattr(data, 'items'):
-            raise ValidationError("not a list: " + str(type(data)))
+            raise ValidationError("not a dict: " + str(type(data)))
         return dict([
             (str(key), self.child.run_validation(value))
             for key, value in data.items()
