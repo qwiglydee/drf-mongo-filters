@@ -10,7 +10,6 @@ from drf_mongo_filters.backend import MongoFilterBackend
 class BackendTest(TestCase):
     def test_backend(self):
         fs = mock.Mock(spec=Filterset())
-        fs.parse_values.return_value = mock.Mock()
 
         class TestView(ListAPIView):
             filter_backends = (MongoFilterBackend,)
@@ -20,6 +19,5 @@ class BackendTest(TestCase):
 
         TestView.as_view()(APIRequestFactory().get("/"))
 
-        TestView.filter_class.assert_called_with()
-        fs.parse_values.assert_called_once_with({})
-        fs.filter_queryset.assert_called_once_with(TestView.queryset, TestView.return_value.parse_values.return_value)
+        TestView.filter_class.assert_called_with({})
+        fs.filter_queryset.assert_called_once_with(TestView.queryset)

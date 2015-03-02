@@ -28,6 +28,9 @@ class FiltersetMeta(type):
 
 
 class BaseFilterset(metaclass=FiltersetMeta):
+    def __init__(self, query=None):
+        self.query = query if query else {}
+
     @property
     def filters(self):
         if not hasattr(self, '_filters'):
@@ -35,6 +38,12 @@ class BaseFilterset(metaclass=FiltersetMeta):
             for name, flt in self._filters.items():
                 flt.bind(name, self)
         return self._filters
+
+    @property
+    def values(self):
+        if not hasattr(self, '_values'):
+            self._values = self.parse_values(self.query)
+        return self._values
 
     def parse_values(self, query):
         """
@@ -48,12 +57,12 @@ class BaseFilterset(metaclass=FiltersetMeta):
             values[name] = val
         return values
 
-    def filter_queryset(self, queryset, values):
+    def filter_queryset(self, queryset):
         """
         convert values to filtering params and apply to queryset
         """
         for name, filt in self.filters.items():
-            val= values.get(name, None)
+            val= self.values.get(name, None)
             if name is None:
                 continue
             params = filt.filter_params(val)

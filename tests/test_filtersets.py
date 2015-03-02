@@ -15,7 +15,7 @@ class BaseTests(TestCase):
             foo = filters.CharFilter()
             bar = filters.IntegerFilter()
             baz = filters.BooleanFilter(name='babaz')
-        fs = TestFS()
+        fs = TestFS({})
 
         self.assertEqual(list(fs.filters.keys()), ['foo', 'bar', 'baz'])
         self.assertIsInstance(fs.filters['foo'], filters.CharFilter)
@@ -32,7 +32,7 @@ class BaseTests(TestCase):
         class TestFS(BaseFS):
             bar = filters.IntegerFilter(name='babar')
             baz = filters.CharFilter()
-        fs = TestFS()
+        fs = TestFS({})
 
         self.assertEqual(list(fs.filters.keys()), ['foo', 'bar', 'baz'])
         self.assertIsInstance(fs.filters['foo'], filters.CharFilter)
@@ -42,16 +42,23 @@ class BaseTests(TestCase):
         self.assertEqual([ f.field.source for f in fs.filters.values() ], ['foo', 'babar', 'baz'])
 
 
-    def test_parsing(self):
+    def test_parsing_query(self):
         class TestFS(Filterset):
             foo = filters.CharFilter()
             bar = filters.IntegerFilter(name="babar")
             baz = filters.BooleanFilter()
 
-        fs = TestFS()
-        data = QueryDict("foo=Foo&babar=123&baz=true")
-        values = fs.parse_values(data)
-        self.assertEqual(values, OrderedDict([ ('foo','Foo'), ('bar', 123), ('baz', True) ]))
+        fs = TestFS(QueryDict("foo=Foo&babar=123&baz=true"))
+        self.assertEqual(fs.values, OrderedDict([ ('foo','Foo'), ('bar', 123), ('baz', True) ]))
+
+    def test_parsing_data(self):
+        class TestFS(Filterset):
+            foo = filters.CharFilter()
+            bar = filters.IntegerFilter()
+            baz = filters.BooleanFilter()
+
+        fs = TestFS({ 'foo': "Foo", 'bar': "123", 'baz': "true" })
+        self.assertEqual(fs.values, OrderedDict([ ('foo','Foo'), ('bar', 123), ('baz', True) ]))
 
     def test_parsing_missed(self):
         class TestFS(Filterset):
@@ -59,10 +66,8 @@ class BaseTests(TestCase):
             bar = filters.IntegerFilter()
             baz = filters.BooleanFilter()
 
-        fs = TestFS()
-        data = QueryDict("foo=Foo&baz=true")
-        values = fs.parse_values(data)
-        self.assertEqual(values, OrderedDict([ ('foo','Foo'), ('baz', True) ]))
+        fs = TestFS({'foo':"Foo", 'baz': "true"})
+        self.assertEqual(fs.values, OrderedDict([ ('foo','Foo'), ('baz', True) ]))
 
     def test_parsing_invalid(self):
         class TestFS(Filterset):
@@ -70,10 +75,9 @@ class BaseTests(TestCase):
             bar = filters.IntegerFilter()
             baz = filters.BooleanFilter()
 
-        fs = TestFS()
-        data = QueryDict("foo=Foo&bar=xxx&baz=true")
+        fs = TestFS(QueryDict("foo=Foo&bar=xxx&baz=true"))
         with self.assertRaises(ValidationError):
-            values = fs.parse_values(data)
+            values = fs.values
 
     def test_filtering(self):
         class TestFS(Filterset):
@@ -83,9 +87,9 @@ class BaseTests(TestCase):
 
         qs = mock.Mock()
         qs.filter = mock.Mock(return_value=qs)
-        fs = TestFS()
+        fs = TestFS({ 'foo': "Foo", 'bar': 123 })
 
-        fs.filter_queryset(qs, { 'foo': "Foo", 'bar': 123 })
+        fs.filter_queryset(qs)
 
         qs.filter.assert_has_calls([
             mock.call(foo="Foo"),

@@ -13,9 +13,14 @@ class ListFieldTests(TestCase):
         fld.bind('foo', mock.Mock())
         return fld
 
-    def test_get(self):
+    def test_get_query(self):
         fld = self.setUpFld()
         value = fld.get_value(QueryDict("foo=1&foo=2&foo=3"))
+        self.assertEqual(value, [ "1", "2", "3" ])
+
+    def test_get_data(self):
+        fld = self.setUpFld()
+        value = fld.get_value({ 'foo': ["1","2","3"] })
         self.assertEqual(value, [ "1", "2", "3" ])
 
     def test_get_empty(self):
