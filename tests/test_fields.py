@@ -8,14 +8,9 @@ from rest_framework.exceptions import ValidationError
 from drf_mongo_filters.fields import ListField, DictField
 
 class ListFieldTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.fs = mock.Mock()
-        cls.fs.parent = None
-
     def setUpFld(self, **kwargs):
         fld = ListField(**kwargs)
-        fld.bind('foo', self.fs)
+        fld.bind('foo', mock.Mock())
         return fld
 
     def test_get(self):
@@ -49,14 +44,9 @@ class ListFieldTests(TestCase):
             value = fld.to_internal_value([ "1", "xxx", "3" ])
 
 class DictFieldTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.fs = mock.Mock()
-        cls.fs.parent = None
-
     def setUpFld(self, **kwargs):
         fld = DictField(**kwargs)
-        fld.bind('foo', self.fs)
+        fld.bind('foo', mock.Mock())
         return fld
 
     def test_get(self):
