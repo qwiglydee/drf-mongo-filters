@@ -1,6 +1,9 @@
 import copy
 from collections import OrderedDict
-from .filters import Filter
+from rest_framework_mongoengine.utils import get_field_info
+from mongoengine import fields
+
+from . import filters
 
 class FiltersetMeta(type):
     """
@@ -8,16 +11,16 @@ class FiltersetMeta(type):
     """
     @classmethod
     def _get_declared_filters(cls, bases, attrs):
-        filters = [(name, attrs.pop(name))
+        filterlist = [(name, attrs.pop(name))
                    for name, obj in list(attrs.items())
-                   if isinstance(obj, Filter)]
-        filters.sort(key=lambda x: x[1]._creation_order)
+                   if isinstance(obj, filters.Filter)]
+        filterlist.sort(key=lambda x: x[1]._creation_order)
 
         for base in reversed(bases):
             if hasattr(base, '_declared_filters'):
-                filters = list(base._declared_filters.items()) + filters
+                filterlist = list(base._declared_filters.items()) + filterlist
 
-        return OrderedDict(filters)
+        return OrderedDict(filterlist)
 
     def __new__(cls, name, bases, attrs):
         attrs['_declared_filters'] = cls._get_declared_filters(bases, attrs)
@@ -61,17 +64,108 @@ class BaseFilterset(metaclass=FiltersetMeta):
 
 class Filterset(BaseFilterset):
     """ declarative queryset
-    uses only declared filters
+
+    uses manually declared filters
     """
     def get_filters(self):
         return copy.deepcopy(self._declared_filters)
 
 class ModelFilterset(Filterset):
     """ automagic filterset
-    generates filters for model
-    """
-    def __init__(self):
-        pass
 
+    creates filters for each field of model with lookup_type=None
+
+    class Meta attrs:
+    - model: model to examine
+    - fields: model fields to scan
+    - exclude: model fields or inherited filters to exclude
+
+    class attr:
+    - _filter_mapping: mapping field classes to filter classes
+    - _filter_mapping: additionalmappings for custom types
+    """
     def get_filters(self):
-        declared = copy.deepcopy(self._declared_filters)
+        declared_filters = copy.deepcopy(self._declared_filters)
+
+        model = getattr(self.Meta, 'model')
+        fields = getattr(self.Meta, 'fields', None)
+        exclude = getattr(self.Meta,'exclude', [])
+        assert not (fields and exclude), "Cannot set both 'fields' and 'exclude'."
+
+        info = get_field_info(model)
+        if fields is None:
+            fields = list(info.fields.keys())
+
+        filters = {} # unordered
+        for name in set(declared_filters.keys()) | set(fields) | set(['id']):
+            if name in exclude:
+                continue
+            if name in declared_filters:
+                filters[name] = declared_filters[name]
+            else:
+                filters[name] = self.filter_for_field(info.fields[name], name)
+
+        return filters
+
+    _filter_mapping = {
+        fields.StringField: filters.CharFilter,
+        fields.URLField: filters.CharFilter,
+        fields.EmailField: filters.CharFilter,
+        fields.IntField: filters.IntegerFilter,
+        fields.LongField: filters.IntegerFilter,
+        fields.FloatField: filters.FloatFilter,
+        fields.DecimalField: filters.FloatFilter,
+        fields.BooleanField: filters.BooleanFilter,
+        fields.DateTimeField: filters.DateTimeFilter,
+        fields.ComplexDateTimeField: filters.DateTimeFilter,
+        # fields.EmbeddedDocumentField: filters.Filter,
+        fields.ObjectIdField: filters.ObjectIdFilter,
+        # fields.GenericEmbeddedDocumentField: filters.Filter,
+        # fields.DynamicField: filters.Filter,
+        # fields.ListField: filters.Filter,
+        # fields.SortedListField: filters.Filter,
+        # fields.DictField: filters.Filter,
+        # fields.MapField: filters.Filter,
+        # fields.ReferenceField: filters.Filter,
+        # fields.GenericReferenceField: filters.Filter,
+        # fields.BinaryField: filters.Filter,
+        # fields.GridFSError: filters.Filter,
+        # fields.GridFSProxy: filters.Filter,
+        # fields.FileField: filters.Filter,
+        # fields.ImageGridFsProxy: filters.Filter,
+        # fields.ImproperlyConfigured: filters.Filter,
+        # fields.ImageField: filters.Filter,
+        # fields.GeoPointField: filters.Filter,
+        # fields.PointField: filters.Filter,
+        # fields.LineStringField: filters.Filter,
+        # fields.PolygonField: filters.Filter,
+        # fields.SequenceField: filters.Filter,
+        fields.UUIDField: filters.UUIDFilter,
+        # fields.GeoJsonBaseField: filters.Filter
+    }
+
+    _custom_mapping = {}
+
+    @classmethod
+    def filter_for_field(cls, field, name):
+        if field.choices:
+            return filters.ChoiceFilter(choices=field.choices)
+
+        mapping = {}
+        mapping.update(cls._filter_mapping)
+        mapping.update(cls._custom_mapping)
+
+        def find_flt_class(field):
+            for fld_cls in [field.__class__] + field.__class__.mro():
+                if fld_cls in mapping:
+                    return mapping[fld_cls]
+
+        flt_cls = find_flt_class(field)
+
+        assert flt_cls is not None, (
+            'no filter mapping for %(fld_cls)s. please exclude the field, define filter, or adjust %(self_cls)s.filter_mapping' % {
+                'fld_cls': str(field.__class__),
+                'fld': repr(field),
+                'self_cls': str(cls)
+            })
+        return flt_cls()
