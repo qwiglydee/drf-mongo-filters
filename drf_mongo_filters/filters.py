@@ -1,8 +1,10 @@
-from mongoengine.queryset.transform import MATCH_OPERATORS
+from mongoengine.queryset import transform
 from rest_framework import fields
 from rest_framework_mongoengine.fields import ObjectIdField
 
 from .fields import ListField, DictField
+
+COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 
 class Filter():
     """ filter base class
@@ -12,10 +14,11 @@ class Filter():
 
     Attrs:
     - field_class: class of serializer field
-    - lookup_type: operator to use in queryset filtering, '=' to use simple comparision
+    - lookup_type: operator to use in queryset filtering, None to use simple comparision
     """
     field_class = fields.Field
-    lookup_type = '='
+    lookup_type = None
+    VALID_LOOKUPS = (None,) + COMPARISION_OPERATORS
 
     # to make skipped fields happy
     partial = True
@@ -31,6 +34,9 @@ class Filter():
         self.name = name
         if lookup_type:
             self.lookup_type = lookup_type
+
+        if self.lookup_type not in self.VALID_LOOKUPS:
+            raise TypeError("invalid lookup type: " + repr(self.lookup_type))
 
         self.parent = None
         self.field = self.make_field(**kwargs)
@@ -69,15 +75,13 @@ class Filter():
         if value is None:
             return {}
 
-        if self.lookup_type != '=' and self.lookup_type not in MATCH_OPERATORS:
-            raise TypeError("invalid lookup type: " + repr(self.lookup_type))
-
         target = "__".join(self.field.source_attrs)
-        if self.lookup_type != '=':
+        if self.lookup_type is not None:
             target += '__' + self.lookup_type
         return { target: value }
 
 class BooleanFilter(Filter):
+    VALID_LOOKUPS = (None, 'ne', 'exists')
     field_class = fields.NullBooleanField
     def make_field(self, **kwargs):
         kwargs['required'] = False
@@ -87,6 +91,7 @@ class ExistsFilter(BooleanFilter):
     lookup_type = 'exists'
 
 class CharFilter(Filter):
+    VALID_LOOKUPS = Filter.VALID_LOOKUPS + transform.STRING_OPERATORS
     field_class = fields.CharField
 
 class UUIDFilter(Filter):
@@ -108,12 +113,14 @@ class TimeFilter(Filter):
     field_class = fields.TimeField
 
 class ChoiceFilter(Filter):
+    VALID_LOOKUPS = (None,)
     field_class = fields.ChoiceField
 
 class ObjectIdFilter(Filter):
     field_class = ObjectIdField
 
 class ListFilter(Filter):
+    VALID_LOOKUPS = ('in', 'nin', 'all')
     " base filter to compare with list of values "
     field_class = ListField
 
@@ -130,21 +137,18 @@ class AllFilter(ListFilter):
     lookup_type = 'all'
 
 class DictFilter(Filter):
+    VALID_LOOKUPS = (None,)
     " base filter to compare with dict of values "
     field_class = DictField
 
 class RangeFilter(DictFilter):
     " takes foo.min&foo.max and compares with gte/lte"
-    lookup_type = ('gte', 'lte')
+    lookup_types = ('gte', 'lte')
 
     def filter_params(self, value):
         """ return filtering params """
         if value is None:
             return {}
-
-        for o in self.lookup_type:
-            if o not in MATCH_OPERATORS:
-                raise TypeError("invalid lookup type: " + repr(self.lookup_type))
 
         val_min = value.get('min', None)
         val_max = value.get('max', None)
@@ -154,8 +158,8 @@ class RangeFilter(DictFilter):
         params = {}
 
         if val_min is not None:
-            params[target+"__"+self.lookup_type[0]] = val_min
+            params[target+"__"+self.lookup_types[0]] = val_min
         if val_max is not None:
-            params[target+"__"+self.lookup_type[1]] = val_max
+            params[target+"__"+self.lookup_types[1]] = val_max
 
         return params

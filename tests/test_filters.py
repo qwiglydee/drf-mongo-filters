@@ -10,10 +10,6 @@ from drf_mongo_filters.filters import Filter
 from drf_mongo_filters import filters
 
 class BaseTests(TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.fs = mock.Mock()
-
     def test_creation_order(self):
         flt1 = Filter()
         flt2 = Filter()
@@ -21,7 +17,7 @@ class BaseTests(TestCase):
 
     def test_defaults(self):
         flt = Filter()
-        self.assertEqual(flt.lookup_type,'=')
+        self.assertEqual(flt.lookup_type,None)
         self.assertIsInstance(flt.field, fields.Field)
 
     def test_lookup_redefined(self):
@@ -52,20 +48,20 @@ class BaseTests(TestCase):
     def test_binding(self):
         with mock.patch.object(fields.Field, 'bind') as mocked:
             flt = Filter()
-            flt.bind('foo', self.fs)
+            flt.bind('foo', mock.Mock())
             mocked.assert_called_once_with('foo', flt)
 
     def test_binding_overrid(self):
         with mock.patch.object(fields.Field, 'bind') as mocked:
             flt = Filter(name='bar')
-            flt.bind('foo', self.fs)
+            flt.bind('foo', mock.Mock())
             mocked.assert_called_once_with('bar', flt)
 
     def test_parsing(self):
         class TestFilter(Filter):
             field_class = fields.CharField
         flt = TestFilter()
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         value = flt.parse_value(QueryDict("foo=Foo&bar=Bar"))
         self.assertEqual(value, "Foo")
 
@@ -73,7 +69,7 @@ class BaseTests(TestCase):
         class TestFilter(Filter):
             field_class = fields.CharField
         flt = TestFilter()
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         value = flt.parse_value(QueryDict("bar=Bar"))
         self.assertEqual(value, None)
 
@@ -81,7 +77,7 @@ class BaseTests(TestCase):
         class TestFilter(Filter):
             field_class = fields.CharField
         flt = TestFilter()
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         value = flt.parse_value(QueryDict("foo=&bar=Bar"))
         self.assertEqual(value, None)
 
@@ -89,7 +85,7 @@ class BaseTests(TestCase):
         class TestFilter(Filter):
             field_class = fields.IntegerField
         flt = TestFilter()
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         value = flt.parse_value(QueryDict("foo=123&bar=Bar"))
         self.assertEqual(value, 123)
 
@@ -97,31 +93,31 @@ class BaseTests(TestCase):
         class TestFilter(Filter):
             field_class = fields.IntegerField
         flt = TestFilter()
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx&bar=Bar"))
 
     def test_params(self):
         flt = Filter()
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'foo': "Foo"})
 
     def test_params_lookup(self):
         flt = Filter(lookup_type='gte')
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'foo__gte': "Foo"})
 
     def test_params_source(self):
         flt = Filter(source="bar")
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'bar': "Foo"})
 
     def test_params_source_nested(self):
         flt = Filter(source="bar.baz")
-        flt.bind('foo', self.fs)
+        flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'bar__baz': "Foo"})
 
@@ -136,7 +132,7 @@ class TypedTests(TestCase):
         self._test_field(filters.BooleanFilter,fields.NullBooleanField)
 
     def test_Exists(self):
-        flt = self._test_field(filters.BooleanFilter,fields.NullBooleanField)
+        flt = self._test_field(filters.ExistsFilter,fields.NullBooleanField)
         self.assertEqual(flt.lookup_type, 'exists')
 
     def test_Char(self):
@@ -167,35 +163,41 @@ class TypedTests(TestCase):
         self._test_field(filters.ObjectIdFilter, ObjectIdField)
 
 
-class ListTests(TestCase):
-    def test_Base(self):
-        flt = filters.ListFilter()
-        self.assertIsInstance(flt.field, ListField)
-
+class CompoundTests(TestCase):
     def test_Any(self):
         flt = filters.AnyFilter()
+        flt.bind('foo', mock.Mock())
+
         self.assertIsInstance(flt.field, ListField)
         self.assertEqual(flt.lookup_type, 'in')
 
+        params = flt.filter_params([3,7])
+        self.assertEqual(params, { 'foo__in': [3,7] })
+
     def test_None(self):
         flt = filters.NoneFilter()
+        flt.bind('foo', mock.Mock())
+
         self.assertIsInstance(flt.field, ListField)
         self.assertEqual(flt.lookup_type, 'nin')
 
+        params = flt.filter_params([3,7])
+        self.assertEqual(params, { 'foo__nin': [3,7] })
+
     def test_All(self):
         flt = filters.AllFilter()
+        flt.bind('foo', mock.Mock())
+
         self.assertIsInstance(flt.field, ListField)
         self.assertEqual(flt.lookup_type, 'all')
 
-
-class DictTests(TestCase):
-    def test_Base(self):
-        flt = filters.DictFilter()
-        self.assertIsInstance(flt.field, DictField)
+        params = flt.filter_params([3,7])
+        self.assertEqual(params, { 'foo__all': [3,7] })
 
     def test_Range(self):
         flt = filters.RangeFilter()
         flt.bind('foo', mock.Mock())
         self.assertIsInstance(flt.field, DictField)
+
         params = flt.filter_params({ 'min':3, 'max':7 })
         self.assertEqual(params, { 'foo__gte': 3, 'foo__lte': 7})
