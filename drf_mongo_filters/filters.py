@@ -24,7 +24,7 @@ class Filter():
     partial = True
 
     _creation_counter = 0
-    def __init__(self, name=None, lookup_type=None, **kwargs):
+    def __init__(self, name=None, lookup=None, **kwargs):
         """
         Args:
         - name: override query_data argument name, defaults to binding name
@@ -32,8 +32,8 @@ class Filter():
         - kwargs: args to pass to field constructor
         """
         self.name = name
-        if lookup_type:
-            self.lookup_type = lookup_type
+        if lookup:
+            self.lookup_type = lookup
 
         if self.lookup_type not in self.VALID_LOOKUPS:
             raise TypeError("invalid lookup type: " + repr(self.lookup_type))

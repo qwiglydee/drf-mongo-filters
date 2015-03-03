@@ -89,7 +89,7 @@ class BaseTests(TestCase):
         self.assertEqual(params, { 'foo': "Foo"})
 
     def test_params_given_lookup(self):
-        flt = Filter(lookup_type='gte')
+        flt = Filter(lookup='gte')
         flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'foo__gte': "Foo"})
