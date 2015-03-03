@@ -9,6 +9,8 @@ from mongoengine import Document, fields
 from drf_mongo_filters import filters
 from drf_mongo_filters.filtersets import Filterset, ModelFilterset
 
+from .models import SimpleDoc
+
 class BaseTests(TestCase):
     def test_declaration(self):
         class TestFS(Filterset):
@@ -98,22 +100,10 @@ class BaseTests(TestCase):
 
 class ModelTests(TestCase):
     def test_supported_types(self):
-        class MockModel(Document):
-            f_str = fields.StringField()
-            f_url = fields.URLField()
-            f_eml = fields.EmailField()
-            f_int = fields.IntField()
-            f_lng = fields.LongField()
-            f_flt = fields.FloatField()
-            f_dec = fields.DecimalField()
-            f_bool = fields.BooleanField()
-            f_dt = fields.DateTimeField()
-            f_oid = fields.ObjectIdField()
-            f_uuid = fields.UUIDField()
 
         class TestFS(ModelFilterset):
             class Meta:
-                model = MockModel
+                model = SimpleDoc
 
         fs = TestFS()
         self.assertIsInstance(fs.filters['f_str'], filters.CharFilter)

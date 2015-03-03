@@ -162,9 +162,6 @@ class ModelFilterset(Filterset):
         if args is None:
             args = {}
 
-        if field.choices:
-            return filters.ChoiceFilter(choices=field.choices, **args)
-
         mapping = {}
         mapping.update(cls._filter_mapping)
         mapping.update(cls._custom_mapping)

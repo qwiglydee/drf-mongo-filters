@@ -111,10 +111,6 @@ class FloatFilter(Filter):
 class DateTimeFilter(Filter):
     field_class = DateTime000Field
 
-class ChoiceFilter(Filter):
-    VALID_LOOKUPS = (None,)
-    field_class = fields.ChoiceField
-
 class ObjectIdFilter(Filter):
     field_class = ObjectIdField
 

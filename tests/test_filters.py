@@ -126,7 +126,7 @@ class BaseTests(TestCase):
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'bar__baz': "Foo"})
 
-class TypedTests(TestCase):
+class FieldTypesTests(TestCase):
     def _test_field(self, flt_class, fld_class, **kwargs):
         flt = flt_class(**kwargs)
         self.assertIsInstance(flt.field, fld_class)
@@ -156,9 +156,6 @@ class TypedTests(TestCase):
     def test_Exists(self):
         flt = self._test_field(filters.ExistsFilter,fields.NullBooleanField)
         self.assertEqual(flt.lookup_type, 'exists')
-
-    def test_Choice(self):
-        self._test_field(filters.ChoiceFilter,fields.ChoiceField,choices=[])
 
 class CompoundTests(TestCase):
     def test_Any(self):
