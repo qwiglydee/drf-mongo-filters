@@ -109,18 +109,18 @@ class BaseTests(TestCase):
         self.assertEqual(params, { 'fofoo': "Foo"})
 
     def test_params_given_both(self):
-        flt = Filter('fofoo', 'gte')
+        flt = Filter('gte', 'fofoo')
         flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'fofoo__gte': "Foo"})
 
-    def test_params_source(self):
+    def test_params_given_source(self):
         flt = Filter(source="bar")
         flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'bar': "Foo"})
 
-    def test_params_source_nested(self):
+    def test_params_given_source_nested(self):
         flt = Filter(source="bar.baz")
         flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")

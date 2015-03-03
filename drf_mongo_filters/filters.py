@@ -9,26 +9,28 @@ COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 class Filter():
     """ filter base class
     Wraps serializer field to parse value from querydict.
-    Name of filter (as filterset attribute) or provided name refers to key in querydict.
-    Source of field (or filter name) refers to model attribute the filter will be applied.
+    Binding name (name of filterset attribute) is used as key in query_params.
+    Source of field (defaults to binding name) is used as model attribute to filter.
+    Defined in class or provided lookup is used as operator to use for mathing. None (default) is to do not use operator.
 
-    Attrs:
+    class attrs:
     - field_class: class of serializer field
     - lookup_type: operator to use in queryset filtering, None to use simple comparision
     """
     field_class = fields.Field
     lookup_type = None
+
     VALID_LOOKUPS = (None,) + COMPARISION_OPERATORS
 
     # to make skipped fields happy
     partial = True
 
     _creation_counter = 0
-    def __init__(self, name=None, lookup=None, **kwargs):
+    def __init__(self, lookup=None, name=None, **kwargs):
         """
         Args:
-        - name: override query_data argument name, defaults to binding name
-        - lookup_type: override lookup operator
+        - lookup: override lookup operator
+        - name: override binding name
         - kwargs: args to pass to field constructor
         """
         self.name = name
