@@ -135,10 +135,6 @@ class TypedTests(TestCase):
     def test_Boolean(self):
         self._test_field(filters.BooleanFilter,fields.NullBooleanField)
 
-    def test_Exists(self):
-        flt = self._test_field(filters.ExistsFilter,fields.NullBooleanField)
-        self.assertEqual(flt.lookup_type, 'exists')
-
     def test_Char(self):
         self._test_field(filters.CharFilter,fields.CharField)
 
@@ -154,18 +150,15 @@ class TypedTests(TestCase):
     def test_DateTime(self):
         self._test_field(filters.DateTimeFilter,fields.DateTimeField)
 
-    def test_Date(self):
-        self._test_field(filters.DateFilter,fields.DateField)
-
-    def test_Time(self):
-        self._test_field(filters.TimeFilter,fields.TimeField)
-
-    def test_Choice(self):
-        self._test_field(filters.ChoiceFilter,fields.ChoiceField,choices=[])
-
     def test_ObjectId(self):
         self._test_field(filters.ObjectIdFilter, ObjectIdField)
 
+    def test_Exists(self):
+        flt = self._test_field(filters.ExistsFilter,fields.NullBooleanField)
+        self.assertEqual(flt.lookup_type, 'exists')
+
+    def test_Choice(self):
+        self._test_field(filters.ChoiceFilter,fields.ChoiceField,choices=[])
 
 class CompoundTests(TestCase):
     def test_Any(self):
