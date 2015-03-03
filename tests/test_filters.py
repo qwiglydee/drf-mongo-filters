@@ -17,22 +17,7 @@ class BaseTests(TestCase):
 
     def test_defaults(self):
         flt = Filter()
-        self.assertEqual(flt.lookup_type,None)
         self.assertIsInstance(flt.field, fields.Field)
-
-    def test_lookup_redefined(self):
-        class TestFilter(Filter):
-            lookup_type = 'gte'
-        flt = TestFilter()
-        self.assertEqual(flt.lookup_type,'gte')
-
-    def test_lookup_specified(self):
-        flt = Filter(lookup_type='gte')
-        self.assertEqual(flt.lookup_type,'gte')
-
-    def test_lookup_specified_invalid(self):
-        with self.assertRaises(TypeError):
-            flt = Filter(lookup_type='xxx')
 
     def test_fieldclass_redefined(self):
         class TestFilter(Filter):
@@ -97,17 +82,37 @@ class BaseTests(TestCase):
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx&bar=Bar"))
 
-    def test_params(self):
+    def test_params_defaults(self):
         flt = Filter()
         flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'foo': "Foo"})
 
-    def test_params_lookup(self):
+    def test_params_given_lookup(self):
         flt = Filter(lookup_type='gte')
         flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'foo__gte': "Foo"})
+
+    def test_params_redefined_lookup(self):
+        class TestFilter(Filter):
+            lookup_type = 'gte'
+        flt = TestFilter()
+        flt.bind('foo', mock.Mock())
+        params = flt.filter_params("Foo")
+        self.assertEqual(params, { 'foo__gte': "Foo"})
+
+    def test_params_given_name(self):
+        flt = Filter(name='fofoo')
+        flt.bind('foo', mock.Mock())
+        params = flt.filter_params("Foo")
+        self.assertEqual(params, { 'fofoo': "Foo"})
+
+    def test_params_given_both(self):
+        flt = Filter('fofoo', 'gte')
+        flt.bind('foo', mock.Mock())
+        params = flt.filter_params("Foo")
+        self.assertEqual(params, { 'fofoo__gte': "Foo"})
 
     def test_params_source(self):
         flt = Filter(source="bar")
@@ -120,7 +125,6 @@ class BaseTests(TestCase):
         flt.bind('foo', mock.Mock())
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'bar__baz': "Foo"})
-
 
 class TypedTests(TestCase):
     def _test_field(self, flt_class, fld_class, **kwargs):

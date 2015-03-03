@@ -80,6 +80,9 @@ class Filter():
             target += '__' + self.lookup_type
         return { target: value }
 
+    def __str__(self):
+        return "<%s %s__%s>" % (self.__class__.__name__, self.field.source, self.lookup_type or '')
+
 class BooleanFilter(Filter):
     VALID_LOOKUPS = (None, 'ne', 'exists')
     field_class = fields.NullBooleanField
