@@ -5,7 +5,7 @@ from rest_framework import fields
 from rest_framework.exceptions import ValidationError
 from rest_framework_mongoengine.fields import ObjectIdField
 
-from drf_mongo_filters.fields import ListField, DictField
+from drf_mongo_filters.fields import ListField, DictField, DateTime000Field
 from drf_mongo_filters.filters import Filter
 from drf_mongo_filters import filters
 
@@ -148,7 +148,7 @@ class TypedTests(TestCase):
         self._test_field(filters.FloatFilter,fields.FloatField)
 
     def test_DateTime(self):
-        self._test_field(filters.DateTimeFilter,fields.DateTimeField)
+        self._test_field(filters.DateTimeFilter,DateTime000Field)
 
     def test_ObjectId(self):
         self._test_field(filters.ObjectIdFilter, ObjectIdField)

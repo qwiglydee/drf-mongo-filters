@@ -2,7 +2,7 @@ from mongoengine.queryset import transform
 from rest_framework import fields
 from rest_framework_mongoengine.fields import ObjectIdField
 
-from .fields import ListField, DictField
+from .fields import ListField, DictField, DateTime000Field
 
 COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 
@@ -109,7 +109,7 @@ class FloatFilter(Filter):
     field_class = fields.FloatField
 
 class DateTimeFilter(Filter):
-    field_class = fields.DateTimeField
+    field_class = DateTime000Field
 
 class ChoiceFilter(Filter):
     VALID_LOOKUPS = (None,)

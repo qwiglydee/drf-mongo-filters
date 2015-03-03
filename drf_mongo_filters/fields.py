@@ -54,3 +54,9 @@ class DictField(fields.DictField):
             (str(key), self.child.run_validation(value))
             for key, value in data.items()
         ])
+
+class DateTime000Field(fields.DateTimeField):
+    """ discards microseconds """
+    def to_internal_value(self, value):
+        value = super().to_internal_value(value)
+        return value.replace(microsecond=value.microsecond//1000*1000)
