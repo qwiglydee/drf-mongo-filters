@@ -108,7 +108,6 @@ class ModelTests(TestCase):
             f_dec = fields.DecimalField()
             f_bool = fields.BooleanField()
             f_dt = fields.DateTimeField()
-            f_cdt = fields.ComplexDateTimeField()
             f_oid = fields.ObjectIdField()
             f_uuid = fields.UUIDField()
 
@@ -126,7 +125,6 @@ class ModelTests(TestCase):
         self.assertIsInstance(fs.filters['f_dec'], filters.FloatFilter)
         self.assertIsInstance(fs.filters['f_bool'], filters.BooleanFilter)
         self.assertIsInstance(fs.filters['f_dt'], filters.DateTimeFilter)
-        self.assertIsInstance(fs.filters['f_cdt'], filters.DateTimeFilter)
         self.assertIsInstance(fs.filters['f_oid'], filters.ObjectIdFilter)
         self.assertIsInstance(fs.filters['f_uuid'], filters.UUIDFilter)
 

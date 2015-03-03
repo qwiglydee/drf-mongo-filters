@@ -82,7 +82,7 @@ class Filterset(BaseFilterset):
 class ModelFilterset(Filterset):
     """ automagic filterset
 
-    creates filters for each field of model with lookup_type=None
+    creates filters for some fields of model
 
     class Meta attrs:
     - model: model to examine
@@ -128,7 +128,7 @@ class ModelFilterset(Filterset):
         fields.DecimalField: filters.FloatFilter,
         fields.BooleanField: filters.BooleanFilter,
         fields.DateTimeField: filters.DateTimeFilter,
-        fields.ComplexDateTimeField: filters.DateTimeFilter,
+        # fields.ComplexDateTimeField: filters.DateTimeFilter, #### its' a string!
         # fields.EmbeddedDocumentField: filters.Filter,
         fields.ObjectIdField: filters.ObjectIdFilter,
         # fields.GenericEmbeddedDocumentField: filters.Filter,
