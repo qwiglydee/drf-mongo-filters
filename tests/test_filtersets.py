@@ -227,3 +227,18 @@ class ModelTests(TestCase):
         self.assertIsInstance(fs.filters['foo'], filters.CharFilter)
         self.assertIsInstance(fs.filters['bar'], filters.IntegerFilter)
         self.assertIsInstance(fs.filters['baz'], filters.CharFilter)
+
+    def test_kwargs(self):
+        class MockModel(Document):
+            foo = fields.StringField()
+            bar = fields.StringField()
+            baz = fields.StringField()
+
+        class TestFS(ModelFilterset):
+            class Meta:
+                model = MockModel
+                kwargs = {
+                    'foo': { 'lookup': 'gte' }
+                }
+        fs = TestFS()
+        self.assertEqual(fs.filters['foo'].lookup_type, 'gte')

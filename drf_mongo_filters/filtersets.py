@@ -88,6 +88,7 @@ class ModelFilterset(Filterset):
     - model: model to examine
     - fields: model fields to scan
     - exclude: model fields or inherited filters to exclude
+    - kwargs: map of customized filter kwargs for each field
 
     class attr:
     - _filter_mapping: mapping field classes to filter classes
@@ -98,7 +99,8 @@ class ModelFilterset(Filterset):
 
         model = getattr(self.Meta, 'model')
         fields = getattr(self.Meta, 'fields', None)
-        exclude = getattr(self.Meta,'exclude', [])
+        exclude = getattr(self.Meta, 'exclude', [])
+        fltargs = getattr(self.Meta, 'kwargs', {})
         assert not (fields and exclude), "Cannot set both 'fields' and 'exclude'."
 
         info = get_field_info(model)
@@ -112,7 +114,7 @@ class ModelFilterset(Filterset):
             if name in declared_filters:
                 filters[name] = declared_filters[name]
             else:
-                filters[name] = self.filter_for_field(info.fields[name], name)
+                filters[name] = self.filter_for_field(name, info.fields[name], fltargs.get(name,None))
 
         return filters
 
@@ -156,9 +158,12 @@ class ModelFilterset(Filterset):
     _custom_mapping = {}
 
     @classmethod
-    def filter_for_field(cls, field, name):
+    def filter_for_field(cls, name, field, args):
+        if args is None:
+            args = {}
+
         if field.choices:
-            return filters.ChoiceFilter(choices=field.choices)
+            return filters.ChoiceFilter(choices=field.choices, **args)
 
         mapping = {}
         mapping.update(cls._filter_mapping)
@@ -177,4 +182,5 @@ class ModelFilterset(Filterset):
                 'fld': repr(field),
                 'self_cls': str(cls)
             })
-        return flt_cls()
+
+        return flt_cls(**args)
