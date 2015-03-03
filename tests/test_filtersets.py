@@ -54,10 +54,10 @@ class BaseTests(TestCase):
     def test_parsing_data(self):
         class TestFS(Filterset):
             foo = filters.CharFilter()
-            bar = filters.IntegerFilter()
+            bar = filters.IntegerFilter(name="babar")
             baz = filters.BooleanFilter()
 
-        fs = TestFS({ 'foo': "Foo", 'bar': "123", 'baz': "true" })
+        fs = TestFS({ 'foo': "Foo", 'babar': "123", 'baz': "true" })
         self.assertEqual(fs.values, OrderedDict([ ('foo','Foo'), ('bar', 123), ('baz', True) ]))
 
     def test_parsing_missed(self):
