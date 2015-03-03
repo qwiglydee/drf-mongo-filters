@@ -140,6 +140,11 @@ class RangeFilter(DictFilter):
     " takes foo.min&foo.max and compares with gte/lte"
     lookup_types = ('gte', 'lte')
 
+    def __init__(self, lookup=None, name=None, **kwargs):
+        if lookup:
+            self.lookup_types = lookup
+        super().__init__(name=name, **kwargs)
+
     def filter_params(self, value):
         """ return filtering params """
         if value is None:

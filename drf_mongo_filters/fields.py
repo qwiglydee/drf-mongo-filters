@@ -43,7 +43,7 @@ class DictField(fields.DictField):
         else:
             raise ValidationError("not a dict: " + str(type(data)))
 
-        if len(ret) == 0:
+        if ret is fields.empty or len(ret) == 0:
             return fields.empty
         return ret
 
