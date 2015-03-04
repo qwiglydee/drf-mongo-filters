@@ -1,16 +1,14 @@
 #!/usr/bin/env python
 from setuptools import setup
-from drf_mongo_filters import __version__
 
 setup(
     name="drf-mongo-filters",
     packages=["drf_mongo_filters",],
-    version=__version__,
+    version="1.0",
     install_requires=["Django == 1.7.*",
                       "mongoengine == 0.8.*",
                       "djangorestframework == 3.0.*",
                       "django-rest-framework-mongoengine == 2.*"],
-
     # metadata for upload to PyPI
     author="Maxim Vasiliev",
     author_email="qwiglydee@gmail.com",
