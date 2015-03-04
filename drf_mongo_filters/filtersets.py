@@ -1,6 +1,5 @@
 import copy
 from collections import OrderedDict
-from rest_framework_mongoengine.utils import get_field_info
 from mongoengine import fields
 
 from . import filters
@@ -103,9 +102,8 @@ class ModelFilterset(Filterset):
         fltargs = getattr(self.Meta, 'kwargs', {})
         assert not (fields and exclude), "Cannot set both 'fields' and 'exclude'."
 
-        info = get_field_info(model)
         if fields is None:
-            fields = list(info.fields.keys())
+            fields = model._fields_ordered
 
         filters = {} # unordered
         for name in set(declared_filters.keys()) | set(fields) | set(['id']):
@@ -114,7 +112,7 @@ class ModelFilterset(Filterset):
             if name in declared_filters:
                 filters[name] = declared_filters[name]
             else:
-                filters[name] = self.filter_for_field(name, info.fields[name], fltargs.get(name,None))
+                filters[name] = self.filter_for_field(name, model._fields[name], fltargs.get(name,None))
 
         return filters
 
