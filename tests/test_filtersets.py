@@ -149,7 +149,7 @@ class ModelTests(TestCase):
             foo = FooField()
 
         class TestFS(ModelFilterset):
-            _custom_mapping = {
+            filters_mapping = {
                 FooField: filters.CharFilter
             }
             class Meta:

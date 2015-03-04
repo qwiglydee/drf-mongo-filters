@@ -27,7 +27,7 @@ class SomeFilterset(ModelFilterset):
 ```
 
 Set backend to apply filtering automatically in `GenericAPIView.filter_queryset`, usually called from `ListModelMixin.list`:
-```python 
+```python
 class TestView(ListAPIView):
   filter_backends = (MongoFilterBackend,)
   filter_class = SomeFilterset
@@ -82,11 +82,11 @@ Applies all filters to queryset.
 
 ###### class
 Attribs:
-* `_custom_mapping`: mapping of field classes to filter classes to override defaults.
+* default_filters_mapping: mapping of field classes to filter classes
+* filters_mapping:  to override defaults
 
 Meta:
 * `model`: document definition to examine
 * `fields`: restrict fields to given list
 * `exclude`: exclude fields from examining
 * `kwargs`: mapping of field names to args for filters
-

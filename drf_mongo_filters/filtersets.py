@@ -116,7 +116,7 @@ class ModelFilterset(Filterset):
 
         return filters
 
-    _filter_mapping = {
+    default_filters_mapping = {
         fields.StringField: filters.CharFilter,
         fields.URLField: filters.CharFilter,
         fields.EmailField: filters.CharFilter,
@@ -153,13 +153,13 @@ class ModelFilterset(Filterset):
         # fields.GeoJsonBaseField: filters.Filter
     }
 
-    _custom_mapping = {}
+    filters_mapping = {}
 
     @classmethod
     def find_flt_class(cls, field):
         mapping = {}
-        mapping.update(cls._filter_mapping)
-        mapping.update(cls._custom_mapping)
+        mapping.update(cls.default_filters_mapping)
+        mapping.update(cls.filters_mapping)
 
         for fld_cls in [field.__class__] + field.__class__.mro():
             if fld_cls in mapping:
