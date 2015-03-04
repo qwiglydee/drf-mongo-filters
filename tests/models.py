@@ -24,3 +24,6 @@ class DeepDoc(Document):
 
     f_emb = fields.EmbeddedDocumentField(EmbDoc)
     f_emblist = fields.ListField(fields.EmbeddedDocumentField(EmbDoc))
+
+class GeoDoc(Document):
+    location = fields.PointField()

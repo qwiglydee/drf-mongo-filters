@@ -5,7 +5,7 @@ from rest_framework import fields
 from rest_framework.exceptions import ValidationError
 from rest_framework_mongoengine.fields import ObjectIdField
 
-from drf_mongo_filters.fields import ListField, DictField, DateTime000Field
+from drf_mongo_filters.fields import ListField, DictField, DateTime000Field, GeoPointField
 from drf_mongo_filters.filters import Filter
 from drf_mongo_filters import filters
 
@@ -195,3 +195,21 @@ class CompoundTests(TestCase):
 
         params = flt.filter_params({ 'min':3, 'max':7 })
         self.assertEqual(params, { 'foo__gte': 3, 'foo__lte': 7})
+
+class GeoTests(TestCase):
+    def test_near(self):
+        flt = filters.GeoNearFilter()
+        flt.bind('foo', mock.Mock())
+        self.assertIsInstance(flt.field, GeoPointField)
+
+        value = flt.parse_value(QueryDict("foo.lng=60.0&foo.lat=80"))
+        params = flt.filter_params(value)
+        self.assertEqual(params, {'foo__near': { 'type': 'Point', 'coordinates': [60.0,80.0] }})
+
+    def test_dist(self):
+        flt = filters.GeoDistanceFilter()
+        flt.bind('foo', mock.Mock())
+        self.assertIsInstance(flt.field, fields.FloatField)
+        value = flt.parse_value(QueryDict("foo=1234"))
+        params = flt.filter_params(value)
+        self.assertEqual(params, {'foo__max_distance': 1234.0})

@@ -2,7 +2,7 @@ from mongoengine.queryset import transform
 from rest_framework import fields
 from rest_framework_mongoengine.fields import ObjectIdField
 
-from .fields import  DateTime000Field, ListField, DictField, RangeField
+from .fields import  DateTime000Field, ListField, DictField, RangeField, GeoPointField
 
 COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 
@@ -161,3 +161,15 @@ class RangeFilter(Filter):
             params[key+self.lookup_types[1]] = val_max
 
         return params
+
+
+class GeoFilter(Filter):
+    VALID_LOOKUPS = transform.GEO_OPERATORS
+
+class GeoNearFilter(GeoFilter):
+    field_class = GeoPointField
+    lookup_type = 'near'
+
+class GeoDistanceFilter(GeoFilter):
+    field_class = fields.FloatField
+    lookup_type = 'max_distance'

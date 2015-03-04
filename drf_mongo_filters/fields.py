@@ -89,3 +89,16 @@ class DictField(fields.DictField):
 
 class RangeField(DictField):
     valid_keys = ('min', 'max')
+
+class GeoPointField(DictField):
+    """ geo coordinates """
+    valid_keys = ('lng', 'lat')
+    required_keys = ('lng', 'lat')
+
+    def __init__(self, **kwargs):
+        kwargs['child'] = fields.FloatField()
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, data):
+        value = super().to_internal_value(data)
+        return { 'type': 'Point', 'coordinates': [ value['lng'], value['lat'] ] }

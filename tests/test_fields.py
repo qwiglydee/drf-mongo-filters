@@ -6,7 +6,8 @@ from django.http import QueryDict
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError
 
-from drf_mongo_filters.fields import ListField, DictField, DateTime000Field
+from drf_mongo_filters.fields import ListField, DictField, DateTime000Field, GeoPointField
+
 
 class DateTimeTest(TestCase):
     def test_parse(self):
@@ -147,3 +148,27 @@ class DictFieldTests(TestCase):
         fld = self.setUpFld(valid_keys=('bar', 'baz'), required_keys=('bar',))
         with self.assertRaises(ValidationError):
             value = fld.to_internal_value({'baz':1, 'quz':1})
+
+class GeoPointTests(TestCase):
+    def setUpFld(self, **kwargs):
+        fld = GeoPointField(**kwargs)
+        fld.bind('foo', mock.Mock())
+        return fld
+
+    def test_coords(self):
+        fld = self.setUpFld()
+        value = fld.get_value(QueryDict("foo.lng=60.5&foo.lat=80"))
+        value = fld.to_internal_value(value)
+        self.assertEqual(value, { 'type': 'Point', 'coordinates': [ 60.5, 80.0 ]})
+
+    def test_inval(self):
+        fld = self.setUpFld()
+        with self.assertRaises(ValidationError):
+            value = fld.get_value(QueryDict("foo.lng=60.5&foo.lat=xxx"))
+            value = fld.to_internal_value(value)
+
+    def test_incompl(self):
+        fld = self.setUpFld()
+        with self.assertRaises(ValidationError):
+            value = fld.get_value(QueryDict("foo.lng=60.5"))
+            value = fld.to_internal_value(value)
