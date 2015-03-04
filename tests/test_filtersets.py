@@ -7,7 +7,7 @@ from mongoengine import Document, fields
 
 
 from drf_mongo_filters import filters
-from drf_mongo_filters.filtersets import Filterset, ModelFilterset
+from drf_mongo_filters import Filterset, ModelFilterset
 
 from .models import SimpleDoc, DeepDoc
 

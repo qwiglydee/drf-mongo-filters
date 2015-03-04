@@ -4,8 +4,7 @@ from uuid import uuid4
 from bson import ObjectId
 
 from rest_framework import fields
-from drf_mongo_filters import filters
-from drf_mongo_filters.filtersets import Filterset, ModelFilterset
+from drf_mongo_filters import filters, Filterset, ModelFilterset
 
 from .models import SimpleDoc, DeepDoc, EmbDoc
 
