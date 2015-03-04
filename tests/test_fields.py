@@ -8,6 +8,38 @@ from rest_framework.exceptions import ValidationError
 
 from drf_mongo_filters.fields import ListField, DictField, DateTime000Field
 
+class DateTimeTest(TestCase):
+    def test_parse(self):
+        fld = DateTime000Field()
+        value = fld.to_internal_value("2015-03-03T09:35:00")
+        self.assertEqual(value, datetime(2015,3,3,9,35,0,0))
+
+    def test_parse000(self):
+        fld = DateTime000Field()
+        value = fld.to_internal_value("2015-03-03T09:35:00.123")
+        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+
+    def test_parse000000(self):
+        fld = DateTime000Field()
+        value = fld.to_internal_value("2015-03-03T09:35:00.123456")
+        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+
+    def test_convert(self):
+        fld = DateTime000Field()
+        value = fld.to_internal_value(datetime(2015,3,3,9,35,0,0))
+        self.assertEqual(value, datetime(2015,3,3,9,35,0,0))
+
+    def test_convert000(self):
+        fld = DateTime000Field()
+        value = fld.to_internal_value(datetime(2015,3,3,9,35,0,123000))
+        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+
+    def test_convert000(self):
+        fld = DateTime000Field()
+        value = fld.to_internal_value(datetime(2015,3,3,9,35,0,123456))
+        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+
+
 class ListFieldTests(TestCase):
     def setUpFld(self, **kwargs):
         fld = ListField(**kwargs)
@@ -48,6 +80,7 @@ class ListFieldTests(TestCase):
         fld = self.setUpFld(child=fields.IntegerField())
         with self.assertRaises(ValidationError):
             value = fld.to_internal_value([ "1", "xxx", "3" ])
+
 
 class DictFieldTests(TestCase):
     def setUpFld(self, **kwargs):
@@ -95,33 +128,22 @@ class DictFieldTests(TestCase):
         with self.assertRaises(ValidationError):
             value = fld.to_internal_value({ 'aa': "1", 'bb':"xxx", 'cc':"3" })
 
-class DateTimeTest(TestCase):
-    def test_parse(self):
-        fld = DateTime000Field()
-        value = fld.to_internal_value("2015-03-03T09:35:00")
-        self.assertEqual(value, datetime(2015,3,3,9,35,0,0))
+    def test_parse_keys_valid(self):
+        fld = self.setUpFld(valid_keys=('bar', 'baz'))
+        value = fld.to_internal_value({'bar':1, 'baz':1})
+        self.assertEqual(value, {'bar': 1, 'baz': 1})
 
-    def test_parse000(self):
-        fld = DateTime000Field()
-        value = fld.to_internal_value("2015-03-03T09:35:00.123")
-        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+    def test_parse_keys_invalid(self):
+        fld = self.setUpFld(valid_keys=('bar', 'baz'))
+        with self.assertRaises(ValidationError):
+            value = fld.to_internal_value({'bar':1, 'baz':1, 'quz':1})
 
-    def test_parse000000(self):
-        fld = DateTime000Field()
-        value = fld.to_internal_value("2015-03-03T09:35:00.123456")
-        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+    def test_parse_keys_required(self):
+        fld = self.setUpFld(valid_keys=('bar', 'baz'), required_keys=('bar',))
+        value = fld.to_internal_value({'bar':1, 'baz':1})
+        self.assertEqual(value, {'bar': 1, 'baz': 1})
 
-    def test_convert(self):
-        fld = DateTime000Field()
-        value = fld.to_internal_value(datetime(2015,3,3,9,35,0,0))
-        self.assertEqual(value, datetime(2015,3,3,9,35,0,0))
-
-    def test_convert000(self):
-        fld = DateTime000Field()
-        value = fld.to_internal_value(datetime(2015,3,3,9,35,0,123000))
-        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
-
-    def test_convert000(self):
-        fld = DateTime000Field()
-        value = fld.to_internal_value(datetime(2015,3,3,9,35,0,123456))
-        self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+    def test_parse_keys_required_missing(self):
+        fld = self.setUpFld(valid_keys=('bar', 'baz'), required_keys=('bar',))
+        with self.assertRaises(ValidationError):
+            value = fld.to_internal_value({'baz':1, 'quz':1})

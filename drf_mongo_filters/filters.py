@@ -2,7 +2,7 @@ from mongoengine.queryset import transform
 from rest_framework import fields
 from rest_framework_mongoengine.fields import ObjectIdField
 
-from .fields import ListField, DictField, DateTime000Field
+from .fields import  DateTime000Field, ListField, DictField, RangeField
 
 COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 
@@ -119,8 +119,8 @@ class ObjectIdFilter(Filter):
     field_class = ObjectIdField
 
 class ListFilter(Filter):
-    VALID_LOOKUPS = ('in', 'nin', 'all')
     " base filter to compare with list of values "
+    VALID_LOOKUPS = ('in', 'nin', 'all')
     field_class = ListField
 
 class AnyFilter(ListFilter):
@@ -135,14 +135,10 @@ class AllFilter(ListFilter):
     " attribute value contains all of provided values "
     lookup_type = 'all'
 
-class DictFilter(Filter):
-    VALID_LOOKUPS = (None,)
-    " base filter to compare with dict of values "
-    field_class = DictField
-
-class RangeFilter(DictFilter):
+class RangeFilter(Filter):
     " takes foo.min&foo.max and compares with gte/lte"
     lookup_types = ('gte', 'lte')
+    field_class = RangeField
 
     def __init__(self, lookup=None, name=None, **kwargs):
         if lookup:
