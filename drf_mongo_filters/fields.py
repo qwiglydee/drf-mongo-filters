@@ -1,4 +1,7 @@
 import re
+from bson import ObjectId
+from bson.errors import InvalidId
+from django.utils.encoding import smart_str
 from django.utils.datastructures import MultiValueDict
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError
@@ -8,6 +11,18 @@ class DateTime000Field(fields.DateTimeField):
     def to_internal_value(self, value):
         value = super().to_internal_value(value)
         return value.replace(microsecond=value.microsecond//1000*1000)
+
+class ObjectIdField(fields.Field):
+    type_label = 'ObjectIdField'
+
+    def to_representation(self, value):
+        return smart_str(value)
+
+    def to_internal_value(self, data):
+        try:
+            return ObjectId(data)
+        except InvalidId as e:
+            raise ValidationError(e)
 
 class ListField(fields.ListField):
     """ parses list of values under field_name

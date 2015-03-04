@@ -1,8 +1,7 @@
 from mongoengine.queryset import transform
 from rest_framework import fields
-from rest_framework_mongoengine.fields import ObjectIdField
 
-from .fields import  DateTime000Field, ListField, DictField, RangeField, GeoPointField
+from .fields import  DateTime000Field, ListField, DictField, RangeField, GeoPointField,  ObjectIdField
 
 COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 
