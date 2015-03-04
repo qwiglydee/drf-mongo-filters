@@ -158,20 +158,24 @@ class ModelFilterset(Filterset):
     _custom_mapping = {}
 
     @classmethod
-    def filter_for_field(cls, name, field, args):
-        if args is None:
-            args = {}
-
+    def find_flt_class(cls, field):
         mapping = {}
         mapping.update(cls._filter_mapping)
         mapping.update(cls._custom_mapping)
 
-        def find_flt_class(field):
-            for fld_cls in [field.__class__] + field.__class__.mro():
-                if fld_cls in mapping:
-                    return mapping[fld_cls]
+        for fld_cls in [field.__class__] + field.__class__.mro():
+            if fld_cls in mapping:
+                return mapping[fld_cls]
 
-        flt_cls = find_flt_class(field)
+    @classmethod
+    def filter_for_field(cls, name, field, args):
+        if args is None:
+            args = {}
+
+        if isinstance(field, fields.ListField):
+            field = field.field
+
+        flt_cls = cls.find_flt_class(field)
 
         assert flt_cls is not None, (
             'no filter mapping for %(fld_cls)s. please exclude the field, define filter, or adjust %(self_cls)s.filter_mapping' % {

@@ -9,7 +9,7 @@ from mongoengine import Document, fields
 from drf_mongo_filters import filters
 from drf_mongo_filters.filtersets import Filterset, ModelFilterset
 
-from .models import SimpleDoc
+from .models import SimpleDoc, DeepDoc
 
 class BaseTests(TestCase):
     def test_declaration(self):
@@ -99,7 +99,7 @@ class BaseTests(TestCase):
         ])
 
 class ModelTests(TestCase):
-    def test_supported_types(self):
+    def test_auto_types(self):
 
         class TestFS(ModelFilterset):
             class Meta:
@@ -118,7 +118,7 @@ class ModelTests(TestCase):
         self.assertIsInstance(fs.filters['f_oid'], filters.ObjectIdFilter)
         self.assertIsInstance(fs.filters['f_uuid'], filters.UUIDFilter)
 
-    def test_supported_derivatives(self):
+    def test_auto_derivatives(self):
         class FooField(fields.StringField):
             pass
 
@@ -132,6 +132,14 @@ class ModelTests(TestCase):
         fs = TestFS()
         self.assertEqual(set(fs.filters.keys()), set(['id', 'foo']))
         self.assertIsInstance(fs.filters['foo'], filters.CharFilter)
+
+    def test_auto_list(self):
+        class TestFS(ModelFilterset):
+            class Meta:
+                model = DeepDoc
+                fields = ['f_list']
+        fs = TestFS()
+        self.assertIsInstance(fs.filters['f_list'], filters.IntegerFilter)
 
     def test_custom_type(self):
         class FooField(fields.BaseField):
