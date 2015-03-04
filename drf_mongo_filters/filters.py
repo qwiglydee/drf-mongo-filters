@@ -61,6 +61,10 @@ class Filter():
             name = self.name
         self.field.bind(name, self)
 
+    @property
+    def target(self):
+        return "__".join(self.field.source_attrs)
+
     def parse_value(self, querydict):
         """ extract value
 
@@ -77,10 +81,10 @@ class Filter():
         if value is None:
             return {}
 
-        target = "__".join(self.field.source_attrs)
+        key = self.target
         if self.lookup_type is not None:
-            target += '__' + self.lookup_type
-        return { target: value }
+            key += '__' + self.lookup_type
+        return { key: value }
 
     def __repr__(self):
         return "%s(name='%s',lookup='%s')" % (self.__class__.__qualname__, self.name, self.lookup_type)
@@ -152,14 +156,12 @@ class RangeFilter(DictFilter):
 
         val_min = value.get('min', None)
         val_max = value.get('max', None)
-
-        target = "__".join(self.field.source_attrs)
-
         params = {}
 
+        key = self.target + "__"
         if val_min is not None:
-            params[target+"__"+self.lookup_types[0]] = val_min
+            params[key+self.lookup_types[0]] = val_min
         if val_max is not None:
-            params[target+"__"+self.lookup_types[1]] = val_max
+            params[key+self.lookup_types[1]] = val_max
 
         return params
