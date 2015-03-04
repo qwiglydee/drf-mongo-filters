@@ -13,14 +13,14 @@ class SimpleDoc(Document):
     f_oid = fields.ObjectIdField()
     f_uuid = fields.UUIDField()
 
+class EmbDoc(EmbeddedDocument):
+    foo = fields.StringField()
+    bar = fields.StringField()
+
 class DeepDoc(Document):
     f_list = fields.ListField(fields.IntField())
     f_map = fields.MapField(fields.IntField())
     f_dict = fields.DictField()
 
-    class EmbDoc(EmbeddedDocument):
-        foo = fields.IntField()
-        bar = fields.IntField()
-
     f_emb = fields.EmbeddedDocumentField(EmbDoc)
-    f_emblist = fields.EmbeddedDocumentField(EmbDoc)
+    f_emblist = fields.ListField(fields.EmbeddedDocumentField(EmbDoc))

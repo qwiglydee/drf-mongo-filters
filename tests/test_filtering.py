@@ -7,7 +7,7 @@ from rest_framework import fields
 from drf_mongo_filters import filters
 from drf_mongo_filters.filtersets import Filterset, ModelFilterset
 
-from .models import SimpleDoc, DeepDoc
+from .models import SimpleDoc, DeepDoc, EmbDoc
 
 class QuerysetTesting():
     def assertQuerysetDocs(self, qs, docs):
@@ -255,5 +255,66 @@ class CompoundTests(QuerysetTesting, TestCase):
         self.assertQuerysetDocs(qs, objects[2:3])
 
 
-class DeepFieldsTests(TestCase):
-    pass
+class DeepFieldsTests(QuerysetTesting, TestCase):
+    def tearDown(self):
+        DeepDoc.objects.delete()
+
+    def test_list(self):
+        objects = [
+            DeepDoc.objects.create(f_list=[10,11]),
+            DeepDoc.objects.create(f_list=[20,21]),
+            DeepDoc.objects.create(f_list=[30,31]),
+        ]
+        class FS(Filterset):
+            foo = filters.IntegerFilter('gte', source='f_list')
+        fs = FS({'foo': "20"})
+        qs = fs.filter_queryset(DeepDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:])
+
+    def test_dict(self):
+        objects = [
+            DeepDoc.objects.create(f_dict={'foo':"foo1", 'bar':"bar1"}),
+            DeepDoc.objects.create(f_dict={'foo':"foo2", 'bar':"bar2"}),
+            DeepDoc.objects.create(f_dict={'foo':"foo3", 'bar':"bar3"})
+        ]
+        class FS(Filterset):
+            foo = filters.CharFilter('gte', source='f_dict.foo')
+        fs = FS({'foo': "foo2"})
+        qs = fs.filter_queryset(DeepDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:])
+
+    def test_map(self):
+        objects = [
+            DeepDoc.objects.create(f_map={'foo':1, 'bar':1}),
+            DeepDoc.objects.create(f_map={'foo':2, 'bar':2}),
+            DeepDoc.objects.create(f_map={'foo':3, 'bar':3})
+        ]
+        class FS(Filterset):
+            foo = filters.IntegerFilter('gte', source='f_map.foo')
+        fs = FS({'foo': "2"})
+        qs = fs.filter_queryset(DeepDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:])
+
+    def test_emb(self):
+        objects = [
+            DeepDoc.objects.create(f_emb=EmbDoc(foo="foo1", bar="bar1")),
+            DeepDoc.objects.create(f_emb=EmbDoc(foo="foo2", bar="bar2")),
+            DeepDoc.objects.create(f_emb=EmbDoc(foo="foo3", bar="bar3")),
+        ]
+        class FS(Filterset):
+            foo = filters.CharFilter('gte', source='f_emb.foo')
+        fs = FS({'foo': "foo2"})
+        qs = fs.filter_queryset(DeepDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:])
+
+    def test_emblist(self):
+        objects = [
+            DeepDoc.objects.create(f_emblist=[EmbDoc(foo="foo10", bar="bar10"),EmbDoc(foo="foo11", bar="bar11")]),
+            DeepDoc.objects.create(f_emblist=[EmbDoc(foo="foo20", bar="bar20"),EmbDoc(foo="foo21", bar="bar21")]),
+            DeepDoc.objects.create(f_emblist=[EmbDoc(foo="foo30", bar="bar30"),EmbDoc(foo="foo31", bar="bar31")]),
+        ]
+        class FS(Filterset):
+            foo = filters.CharFilter('gte', source='f_emblist.foo')
+        fs = FS({'foo': "foo20"})
+        qs = fs.filter_queryset(DeepDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:])
