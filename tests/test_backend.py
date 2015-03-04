@@ -2,7 +2,7 @@ from unittest import TestCase
 from unittest import mock
 from django.http import QueryDict
 from rest_framework.test import APIRequestFactory
-from rest_framework_mongoengine.generics import ListAPIView
+from rest_framework.generics import ListAPIView
 
 from drf_mongo_filters.filtersets import Filterset
 from drf_mongo_filters.backend import MongoFilterBackend
