@@ -238,6 +238,24 @@ class FieldTypesTests(TestCase):
             value = flt.parse_value(QueryDict("foo=2015-03-04"))
             params = flt.filter_params(value)
 
+    def test_date(self):
+        flt = self.setUpFilter(filters.DateFilter)
+        value = flt.parse_value(QueryDict("foo=2015-03-04"))
+        params = flt.filter_params(value)
+        self.assertEqual(params, { 'foo__gte': datetime(2015,3,4,0,0,0,0),
+                                   'foo__lt': datetime(2015,3,5,0,0,0,0) })
+
+    def test_date_fail(self):
+        flt = self.setUpFilter(filters.DateFilter)
+
+        with self.assertRaises(ValidationError):
+            value = flt.parse_value(QueryDict("foo=xxx"))
+            params = flt.filter_params(value)
+
+        with self.assertRaises(ValidationError):
+            value = flt.parse_value(QueryDict("foo=2015-03-04T01:02"))
+            params = flt.filter_params(value)
+
     def test_oid(self):
         flt = self.setUpFilter(filters.ObjectIdFilter)
         val = ObjectId()

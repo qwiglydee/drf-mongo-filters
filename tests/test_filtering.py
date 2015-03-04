@@ -1,5 +1,5 @@
 from unittest import TestCase
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from uuid import uuid4
 from bson import ObjectId
 
@@ -164,6 +164,23 @@ class BasicTests(QuerysetTesting, TestCase):
         fs = FS({'dt_gte': d2})
         qs = fs.filter_queryset(SimpleDoc.objects.all())
         self.assertQuerysetDocs(qs, objects[1:3])
+
+    def test_datetime(self):
+        objects = [
+            SimpleDoc.objects.create(f_dt=datetime(2015,3,4,8,9,10)),
+            SimpleDoc.objects.create(f_dt=datetime(2015,3,5,9,10,11)),
+            SimpleDoc.objects.create(f_dt=datetime(2015,3,5,10,11,12)),
+            SimpleDoc.objects.create(f_dt=datetime(2015,3,6,11,12,13)),
+        ]
+        class FS(Filterset):
+            dt = filters.DateFilter(source='f_dt')
+
+        fs = FS({'dt': date(2015,3,5)})
+        qs = fs.filter_queryset(SimpleDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:3])
+
+
+
 
     def test_oid(self):
         oid = ObjectId()
