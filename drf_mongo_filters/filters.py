@@ -168,6 +168,9 @@ class RangeFilter(Filter):
         val_max = value.get('max', None)
         params = {}
 
+        if val_min == val_max:
+            return { self.target: val_min }
+
         key = self.target + "__"
         if val_min is not None:
             params[key+self.lookup_types[0]] = val_min

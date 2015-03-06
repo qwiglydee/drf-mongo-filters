@@ -313,6 +313,13 @@ class CompoundTests(TestCase):
         params = flt.filter_params(value)
         self.assertEqual(params, { 'foo__gte': "a", 'foo__lte': "b"})
 
+    def test_range_collapse(self):
+        flt = filters.RangeFilter()
+        flt.bind('foo', mock.Mock())
+        value = flt.parse_value(QueryDict("foo.min=a&foo.max=a"))
+        params = flt.filter_params(value)
+        self.assertEqual(params, { 'foo': "a" })
+
 class GeoTests(TestCase):
     def test_near(self):
         flt = filters.GeoNearFilter()
