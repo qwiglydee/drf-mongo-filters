@@ -67,7 +67,7 @@ Attributes:
 Args:
 * `lookup`: override matching operator
 * `name`: override binding name
-* `kwargs`: args to initialize field
+* `kwargs`: args to initialize field, in particular: `source` specifies model attribute to compare
 
 ### Filterset
 
