@@ -178,9 +178,6 @@ class BasicTests(QuerysetTesting, TestCase):
         qs = fs.filter_queryset(SimpleDoc.objects.all())
         self.assertQuerysetDocs(qs, objects[1:3])
 
-
-
-
     def test_oid(self):
         oid = ObjectId()
         objects = [
@@ -195,6 +192,22 @@ class BasicTests(QuerysetTesting, TestCase):
         fs = FS({'foo': oid})
         qs = fs.filter_queryset(SimpleDoc.objects.all())
         self.assertQuerysetDocs(qs, objects[1:2])
+
+    def test_ref(self):
+        oid = ObjectId()
+        objects = [
+            SimpleDoc.objects.create(f_ref=ObjectId()),
+            SimpleDoc.objects.create(f_ref=oid),
+            SimpleDoc.objects.create(f_ref=ObjectId()),
+        ]
+
+        class FS(Filterset):
+            foo = filters.CharFilter(source='f_ref')
+
+        fs = FS({'foo': oid})
+        qs = fs.filter_queryset(SimpleDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:2])
+
 
     def test_uuid(self):
         uuid = uuid4()

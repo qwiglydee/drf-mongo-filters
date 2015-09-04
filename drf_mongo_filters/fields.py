@@ -1,16 +1,19 @@
 import re
 from bson import ObjectId
+from bson.dbref import DBRef
 from bson.errors import InvalidId
 from django.utils.encoding import smart_str
 from django.utils.datastructures import MultiValueDict
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError
 
+
 class DateTime000Field(fields.DateTimeField):
     """ discards microseconds """
     def to_internal_value(self, value):
         value = super().to_internal_value(value)
         return value.replace(microsecond=value.microsecond//1000*1000)
+
 
 class ObjectIdField(fields.Field):
     type_label = 'ObjectIdField'
@@ -23,6 +26,20 @@ class ObjectIdField(fields.Field):
             return ObjectId(data)
         except InvalidId as e:
             raise ValidationError(e)
+
+
+class DBRefField(fields.Field):
+    type_label = 'ReferenceField'
+    def __init__(self, **kwargs):
+        self.collection = kwargs.pop('collection')
+        super().__init__(**kwargs)
+
+    def to_internal_value(self, data):
+        try:
+            return DBRef(self.collection, ObjectId(data))
+        except InvalidId as e:
+            raise ValidationError(e)
+
 
 class ListField(fields.ListField):
     """ parses list of values under field_name

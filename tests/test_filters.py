@@ -1,6 +1,7 @@
 from datetime import datetime
 from uuid import uuid4
 from bson import ObjectId
+from bson.dbref import DBRef
 
 from unittest import TestCase
 from unittest import mock
@@ -129,14 +130,15 @@ class BaseTests(TestCase):
         params = flt.filter_params("Foo")
         self.assertEqual(params, { 'bar__baz': "Foo"})
 
+
 class FieldTypesTests(TestCase):
-    def setUpFilter(self, flt_class, **kwargs):
+    def setUpFilter(self, name, flt_class, **kwargs):
         flt = flt_class(**kwargs)
-        flt.bind('foo', mock.Mock())
+        flt.bind(name, mock.Mock())
         return flt
 
     def test_bool(self):
-        flt = self.setUpFilter(filters.BooleanFilter)
+        flt = self.setUpFilter('foo', filters.BooleanFilter)
         self.assertIsInstance(flt.field, fields.NullBooleanField)
 
         value = flt.parse_value(QueryDict("foo=true"))
@@ -148,21 +150,21 @@ class FieldTypesTests(TestCase):
         self.assertEqual(params, { 'foo': False })
 
     def test_bool_fail(self):
-        flt = self.setUpFilter(filters.BooleanFilter)
+        flt = self.setUpFilter('foo',filters.BooleanFilter)
 
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx"))
             params = flt.filter_params(value)
 
     def test_char(self):
-        flt = self.setUpFilter(filters.CharFilter)
+        flt = self.setUpFilter('foo',filters.CharFilter)
 
         value = flt.parse_value(QueryDict("foo=Foo"))
         params = flt.filter_params(value)
         self.assertEqual(params, { 'foo': "Foo" })
 
     def test_uuid(self):
-        flt = self.setUpFilter(filters.UUIDFilter)
+        flt = self.setUpFilter('foo',filters.UUIDFilter)
         val = uuid4()
 
         value = flt.parse_value(QueryDict("foo=" + str(val)))
@@ -170,21 +172,21 @@ class FieldTypesTests(TestCase):
         self.assertEqual(params, { 'foo': val })
 
     def test_uuid_fail(self):
-        flt = self.setUpFilter(filters.UUIDFilter)
+        flt = self.setUpFilter('foo',filters.UUIDFilter)
 
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx"))
             params = flt.filter_params(value)
 
     def test_int(self):
-        flt = self.setUpFilter(filters.IntegerFilter)
+        flt = self.setUpFilter('foo',filters.IntegerFilter)
 
         value = flt.parse_value(QueryDict("foo=123"))
         params = flt.filter_params(value)
         self.assertEqual(params, { 'foo': 123 })
 
     def test_int_fail(self):
-        flt = self.setUpFilter(filters.IntegerFilter)
+        flt = self.setUpFilter('foo',filters.IntegerFilter)
 
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx"))
@@ -195,21 +197,21 @@ class FieldTypesTests(TestCase):
             params = flt.filter_params(value)
 
     def test_float(self):
-        flt = self.setUpFilter(filters.FloatFilter)
+        flt = self.setUpFilter('foo',filters.FloatFilter)
 
         value = flt.parse_value(QueryDict("foo=123"))
         params = flt.filter_params(value)
         self.assertEqual(params, { 'foo': 123.0 })
 
     def test_float_fail(self):
-        flt = self.setUpFilter(filters.FloatFilter)
+        flt = self.setUpFilter('foo',filters.FloatFilter)
 
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx"))
             params = flt.filter_params(value)
 
     def test_datetime(self):
-        flt = self.setUpFilter(filters.DateTimeFilter)
+        flt = self.setUpFilter('foo',filters.DateTimeFilter)
 
         value = flt.parse_value(QueryDict("foo=2015-03-04T09:01"))
         params = flt.filter_params(value)
@@ -228,7 +230,7 @@ class FieldTypesTests(TestCase):
         self.assertEqual(params, { 'foo': datetime(2015,3,4,9,1,2,123000) })
 
     def test_datetime_fail(self):
-        flt = self.setUpFilter(filters.DateTimeFilter)
+        flt = self.setUpFilter('foo',filters.DateTimeFilter)
 
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx"))
@@ -239,14 +241,14 @@ class FieldTypesTests(TestCase):
             params = flt.filter_params(value)
 
     def test_date(self):
-        flt = self.setUpFilter(filters.DateFilter)
+        flt = self.setUpFilter('foo',filters.DateFilter)
         value = flt.parse_value(QueryDict("foo=2015-03-04"))
         params = flt.filter_params(value)
         self.assertEqual(params, { 'foo__gte': datetime(2015,3,4,0,0,0,0),
                                    'foo__lt': datetime(2015,3,5,0,0,0,0) })
 
     def test_date_fail(self):
-        flt = self.setUpFilter(filters.DateFilter)
+        flt = self.setUpFilter('foo',filters.DateFilter)
 
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx"))
@@ -257,7 +259,7 @@ class FieldTypesTests(TestCase):
             params = flt.filter_params(value)
 
     def test_oid(self):
-        flt = self.setUpFilter(filters.ObjectIdFilter)
+        flt = self.setUpFilter('foo',filters.ObjectIdFilter)
         val = ObjectId()
 
         value = flt.parse_value(QueryDict("foo=" + str(val)))
@@ -265,14 +267,25 @@ class FieldTypesTests(TestCase):
         self.assertEqual(params, { 'foo': val })
 
     def test_oid_fail(self):
-        flt = self.setUpFilter(filters.ObjectIdFilter)
+        flt = self.setUpFilter('foo',filters.ObjectIdFilter)
 
         with self.assertRaises(ValidationError):
             value = flt.parse_value(QueryDict("foo=xxx"))
             params = flt.filter_params(value)
 
+    def test_ref(self):
+        flt = self.setUpFilter('foo',filters.ReferenceFilter, collection='coll')
+        oid = ObjectId()
+        val = DBRef('coll', oid)
+
+        value = flt.parse_value(QueryDict("foo=" + str(oid)))
+        params = flt.filter_params(value)
+
+        self.assertEqual(params, { 'foo': val })
+
+
     def test_exists(self):
-        flt = self.setUpFilter(filters.ExistsFilter)
+        flt = self.setUpFilter('foo', filters.ExistsFilter)
 
         value = flt.parse_value(QueryDict("foo=true"))
         params = flt.filter_params(value)
@@ -319,6 +332,7 @@ class CompoundTests(TestCase):
         value = flt.parse_value(QueryDict("foo.min=a&foo.max=a"))
         params = flt.filter_params(value)
         self.assertEqual(params, { 'foo': "a" })
+
 
 class GeoTests(TestCase):
     def test_near(self):

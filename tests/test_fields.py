@@ -1,12 +1,15 @@
 from datetime import datetime
+from bson import ObjectId, DBRef
 from unittest import TestCase
 from unittest import mock
 from django.http import QueryDict
 
+from mongoengine import Document
+
 from rest_framework import fields
 from rest_framework.exceptions import ValidationError
 
-from drf_mongo_filters.fields import ListField, DictField, DateTime000Field, GeoPointField
+from drf_mongo_filters.fields import ListField, DictField, DateTime000Field, GeoPointField, ObjectIdField, DBRefField
 
 
 class DateTimeTest(TestCase):
@@ -39,6 +42,20 @@ class DateTimeTest(TestCase):
         fld = DateTime000Field()
         value = fld.to_internal_value(datetime(2015,3,3,9,35,0,123456))
         self.assertEqual(value, datetime(2015,3,3,9,35,0,123000))
+
+
+class RefTests(TestCase):
+    def test_oid(self):
+        fld = ObjectIdField()
+        val = ObjectId()
+        value = fld.to_internal_value(str(val))
+        self.assertEqual(value, val)
+
+    def test_ref(self):
+        fld = DBRefField(collection='doc')
+        val = ObjectId()
+        value = fld.to_internal_value(str(val))
+        self.assertEqual(value, DBRef('doc', val))
 
 
 class ListFieldTests(TestCase):

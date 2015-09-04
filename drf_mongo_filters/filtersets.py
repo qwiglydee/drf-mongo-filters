@@ -129,13 +129,13 @@ class ModelFilterset(Filterset):
         # fields.ComplexDateTimeField: filters.DateTimeFilter, #### its' a string!
         # fields.EmbeddedDocumentField: filters.Filter,
         fields.ObjectIdField: filters.ObjectIdFilter,
+        fields.ReferenceField: filters.ReferenceFilter,
         # fields.GenericEmbeddedDocumentField: filters.Filter,
         # fields.DynamicField: filters.Filter,
         # fields.ListField: filters.Filter,
         # fields.SortedListField: filters.Filter,
         # fields.DictField: filters.Filter,
         # fields.MapField: filters.Filter,
-        # fields.ReferenceField: filters.Filter,
         # fields.GenericReferenceField: filters.Filter,
         # fields.BinaryField: filters.Filter,
         # fields.GridFSError: filters.Filter,
@@ -181,5 +181,8 @@ class ModelFilterset(Filterset):
                 'fld': repr(field),
                 'self_cls': str(cls)
             })
+
+        if flt_cls == filters.ReferenceFilter:
+            args['collection'] = field.document_type._get_collection_name()
 
         return flt_cls(**args)

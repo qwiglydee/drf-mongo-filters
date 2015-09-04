@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from mongoengine.queryset import transform
 from rest_framework import fields
 
-from .fields import  DateTime000Field, ListField, DictField, RangeField, GeoPointField,  ObjectIdField
+from .fields import  DateTime000Field, ListField, DictField, RangeField, GeoPointField,  ObjectIdField, DBRefField
 
 COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 
@@ -131,6 +131,16 @@ class DateFilter(Filter):
 
 class ObjectIdFilter(Filter):
     field_class = ObjectIdField
+
+class ReferenceFilter(ObjectIdFilter):
+    field_class = DBRefField
+    def __init__(self, **kwargs):
+        self.collection = kwargs.pop('collection')
+        super().__init__(**kwargs)
+
+    def make_field(self, **kwargs):
+        kwargs['collection'] = self.collection
+        return super().make_field(**kwargs)
 
 class ListFilter(Filter):
     " base filter to compare with list of values "

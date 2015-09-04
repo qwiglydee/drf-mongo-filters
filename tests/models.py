@@ -1,5 +1,8 @@
 from mongoengine import fields, Document, EmbeddedDocument
 
+class RefDoc(Document):
+    pass
+
 class SimpleDoc(Document):
     f_str = fields.StringField()
     f_url = fields.URLField()
@@ -11,6 +14,7 @@ class SimpleDoc(Document):
     f_bool = fields.BooleanField()
     f_dt = fields.DateTimeField()
     f_oid = fields.ObjectIdField()
+    f_ref = fields.ReferenceField(RefDoc)
     f_uuid = fields.UUIDField()
 
 class EmbDoc(EmbeddedDocument):
