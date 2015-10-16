@@ -116,21 +116,10 @@ class FloatFilter(Filter):
 class DateTimeFilter(Filter):
     field_class = DateTime000Field
 
-class DateFilter(Filter):
-    """ matches whole date """
-    field_class = fields.DateField
-    def filter_params(self, value):
-        if value is None:
-            return {}
-
-        val_min = datetime(value.year, value.month, value.day)
-        val_max = val_min + timedelta(days=1)
-
-        key = self.target + "__"
-        return { key+'gte': val_min, key+'lt': val_max}
 
 class ObjectIdFilter(Filter):
     field_class = ObjectIdField
+
 
 class ReferenceFilter(ObjectIdFilter):
     field_class = DBRefField

@@ -1,7 +1,7 @@
 import copy
 from collections import OrderedDict
-from mongoengine import fields
-
+from mongoengine import fields as mongo_fields
+from mongoengine.queryset.visitor import QNode
 from . import filters
 
 class FiltersetMeta(type):
@@ -67,7 +67,10 @@ class BaseFilterset(metaclass=FiltersetMeta):
             params = filt.filter_params(val)
             if not params:
                 continue
-            queryset = queryset.filter(**params)
+            if isinstance(params, dict):
+                queryset = queryset.filter(**params)
+            if isinstance(params, QNode):
+                queryset = queryset.filter(params)
         return queryset
 
 class Filterset(BaseFilterset):
@@ -117,40 +120,40 @@ class ModelFilterset(Filterset):
         return filters
 
     default_filters_mapping = {
-        fields.StringField: filters.CharFilter,
-        fields.URLField: filters.CharFilter,
-        fields.EmailField: filters.CharFilter,
-        fields.IntField: filters.IntegerFilter,
-        fields.LongField: filters.IntegerFilter,
-        fields.FloatField: filters.FloatFilter,
-        fields.DecimalField: filters.FloatFilter,
-        fields.BooleanField: filters.BooleanFilter,
-        fields.DateTimeField: filters.DateTimeFilter,
-        # fields.ComplexDateTimeField: filters.DateTimeFilter, #### its' a string!
-        # fields.EmbeddedDocumentField: filters.Filter,
-        fields.ObjectIdField: filters.ObjectIdFilter,
-        fields.ReferenceField: filters.ReferenceFilter,
-        # fields.GenericEmbeddedDocumentField: filters.Filter,
-        # fields.DynamicField: filters.Filter,
-        # fields.ListField: filters.Filter,
-        # fields.SortedListField: filters.Filter,
-        # fields.DictField: filters.Filter,
-        # fields.MapField: filters.Filter,
-        # fields.GenericReferenceField: filters.Filter,
-        # fields.BinaryField: filters.Filter,
-        # fields.GridFSError: filters.Filter,
-        # fields.GridFSProxy: filters.Filter,
-        # fields.FileField: filters.Filter,
-        # fields.ImageGridFsProxy: filters.Filter,
-        # fields.ImproperlyConfigured: filters.Filter,
-        # fields.ImageField: filters.Filter,
-        # fields.GeoPointField: filters.Filter,
-        # fields.PointField: filters.Filter,
-        # fields.LineStringField: filters.Filter,
-        # fields.PolygonField: filters.Filter,
-        # fields.SequenceField: filters.Filter,
-        fields.UUIDField: filters.UUIDFilter,
-        # fields.GeoJsonBaseField: filters.Filter
+        mongo_fields.StringField: filters.CharFilter,
+        mongo_fields.URLField: filters.CharFilter,
+        mongo_fields.EmailField: filters.CharFilter,
+        mongo_fields.IntField: filters.IntegerFilter,
+        mongo_fields.LongField: filters.IntegerFilter,
+        mongo_fields.FloatField: filters.FloatFilter,
+        mongo_fields.DecimalField: filters.FloatFilter,
+        mongo_fields.BooleanField: filters.BooleanFilter,
+        mongo_fields.DateTimeField: filters.DateTimeFilter,
+        # mongo_fields.ComplexDateTimeField: filters.DateTimeFilter, #### its' a string!
+        # mongo_fields.EmbeddedDocumentField: filters.Filter,
+        mongo_fields.ObjectIdField: filters.ObjectIdFilter,
+        mongo_fields.ReferenceField: filters.ReferenceFilter,
+        # mongo_fields.GenericEmbeddedDocumentField: filters.Filter,
+        # mongo_fields.DynamicField: filters.Filter,
+        # mongo_fields.ListField: filters.Filter,
+        # mongo_fields.SortedListField: filters.Filter,
+        # mongo_fields.DictField: filters.Filter,
+        # mongo_fields.MapField: filters.Filter,
+        # mongo_fields.GenericReferenceField: filters.Filter,
+        # mongo_fields.BinaryField: filters.Filter,
+        # mongo_fields.GridFSError: filters.Filter,
+        # mongo_fields.GridFSProxy: filters.Filter,
+        # mongo_fields.FileField: filters.Filter,
+        # mongo_fields.ImageGridFsProxy: filters.Filter,
+        # mongo_fields.ImproperlyConfigured: filters.Filter,
+        # mongo_fields.ImageField: filters.Filter,
+        # mongo_fields.GeoPointField: filters.Filter,
+        # mongo_fields.PointField: filters.Filter,
+        # mongo_fields.LineStringField: filters.Filter,
+        # mongo_fields.PolygonField: filters.Filter,
+        # mongo_fields.SequenceField: filters.Filter,
+        mongo_fields.UUIDField: filters.UUIDFilter,
+        # mongo_fields.GeoJsonBaseField: filters.Filter
     }
 
     filters_mapping = {}
@@ -170,14 +173,15 @@ class ModelFilterset(Filterset):
         if args is None:
             args = {}
 
-        if isinstance(field, fields.ListField):
+        if isinstance(field, mongo_fields.ListField):
             field = field.field
 
         flt_cls = cls.find_flt_class(field)
 
         assert flt_cls is not None, (
-            'no filter mapping for %(fld_cls)s. please exclude the field, define filter, or adjust %(self_cls)s.filter_mapping' % {
+            'no filter mapping for %(fld_cls)s %(fld_name)s. please exclude the field, define filter, or adjust %(self_cls)s.filter_mapping' % {
                 'fld_cls': str(field.__class__),
+                'fld_name': name,
                 'fld': repr(field),
                 'self_cls': str(cls)
             })

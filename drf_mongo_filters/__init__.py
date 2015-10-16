@@ -1,3 +1,4 @@
+from . import fields
 from . import filters
 from .filtersets import *
 from .backend import MongoFilterBackend
