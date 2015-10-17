@@ -114,8 +114,7 @@ class ModelFilterset(Filterset):
             if name in exclude:
                 continue
             if name in declared_filters:
-                if not isinstance(declared_filters[name], filters.SkipFilter):
-                    docfilters[name] = declared_filters[name]
+                docfilters[name] = declared_filters[name]
             else:
                 docfilters[name] = self.filter_for_field(name, model._fields[name], fltargs.get(name,None))
 
@@ -187,8 +186,5 @@ class ModelFilterset(Filterset):
                 'fld': repr(field),
                 'self_cls': str(cls)
             })
-
-        if flt_cls == filters.ReferenceFilter:
-            args['collection'] = field.document_type._get_collection_name()
 
         return flt_cls(**args)
