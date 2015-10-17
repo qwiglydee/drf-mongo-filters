@@ -2,6 +2,7 @@ import copy
 from collections import OrderedDict
 from mongoengine import fields as mongo_fields
 from mongoengine.queryset.visitor import QNode
+
 from . import filters
 
 class FiltersetMeta(type):
@@ -108,16 +109,17 @@ class ModelFilterset(Filterset):
         if fields is None:
             fields = model._fields_ordered
 
-        filters = {} # unordered
+        docfilters = {} # unordered
         for name in set(declared_filters.keys()) | set(fields) | set(['id']):
             if name in exclude:
                 continue
             if name in declared_filters:
-                filters[name] = declared_filters[name]
+                if not isinstance(declared_filters[name], filters.SkipFilter):
+                    docfilters[name] = declared_filters[name]
             else:
-                filters[name] = self.filter_for_field(name, model._fields[name], fltargs.get(name,None))
+                docfilters[name] = self.filter_for_field(name, model._fields[name], fltargs.get(name,None))
 
-        return filters
+        return docfilters
 
     default_filters_mapping = {
         mongo_fields.StringField: filters.CharFilter,

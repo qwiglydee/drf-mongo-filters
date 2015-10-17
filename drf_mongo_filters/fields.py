@@ -28,19 +28,6 @@ class ObjectIdField(fields.Field):
             raise ValidationError(e)
 
 
-class DBRefField(fields.Field):
-    type_label = 'ReferenceField'
-    def __init__(self, **kwargs):
-        self.collection = kwargs.pop('collection')
-        super().__init__(**kwargs)
-
-    def to_internal_value(self, data):
-        try:
-            return DBRef(self.collection, ObjectId(data))
-        except InvalidId as e:
-            raise ValidationError(e)
-
-
 class ListField(fields.ListField):
     """ parses list of values under field_name
     like in ?foo=1&foo=2&foo=3 to [1,2,3]

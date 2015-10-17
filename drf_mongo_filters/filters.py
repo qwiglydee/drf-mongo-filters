@@ -1,9 +1,7 @@
-from datetime import datetime, timedelta
-
 from mongoengine.queryset import transform
 from rest_framework import fields
 
-from .fields import  DateTime000Field, ListField, DictField, RangeField, GeoPointField,  ObjectIdField, DBRefField
+from .fields import  DateTime000Field, ListField, RangeField, GeoPointField,  ObjectIdField
 
 COMPARISION_OPERATORS = ('ne', 'gt', 'gte', 'lt', 'lte')
 
@@ -90,6 +88,7 @@ class Filter():
     def __repr__(self):
         return "%s(name='%s',lookup='%s')" % (self.__class__.__qualname__, self.name, self.lookup_type)
 
+
 class BooleanFilter(Filter):
     VALID_LOOKUPS = (None, 'ne', 'exists')
     field_class = fields.NullBooleanField
@@ -122,14 +121,14 @@ class ObjectIdFilter(Filter):
 
 
 class ReferenceFilter(ObjectIdFilter):
-    field_class = DBRefField
-    def __init__(self, **kwargs):
-        self.collection = kwargs.pop('collection')
-        super().__init__(**kwargs)
+    field_class = ObjectIdField
 
-    def make_field(self, **kwargs):
-        kwargs['collection'] = self.collection
-        return super().make_field(**kwargs)
+    def filter_params(self, value):
+        """ return filtering params """
+        if value is None:
+            return {}
+
+        return { '__raw__': { self.target + ".$id": value } }
 
 class ListFilter(Filter):
     " base filter to compare with list of values "
