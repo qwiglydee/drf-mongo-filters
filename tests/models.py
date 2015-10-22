@@ -16,6 +16,8 @@ class SimpleDoc(Document):
     f_oid = fields.ObjectIdField()
     f_ref = fields.ReferenceField(RefDoc)
     f_uuid = fields.UUIDField()
+    f_rng_beg = fields.IntField()
+    f_rng_end = fields.IntField()
 
 class EmbDoc(EmbeddedDocument):
     foo = fields.StringField()

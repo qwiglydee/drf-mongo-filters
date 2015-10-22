@@ -1,8 +1,7 @@
 from unittest import TestCase
 
-from rest_framework import fields
 from drf_mongo_filters import filters
-from drf_mongo_filters.filtersets import Filterset, ModelFilterset
+from drf_mongo_filters.filtersets import Filterset
 
 from .models import GeoDoc
 

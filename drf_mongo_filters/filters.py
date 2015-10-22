@@ -1,4 +1,4 @@
-from mongoengine.queryset import transform
+from mongoengine.queryset import transform, Q
 from rest_framework import fields
 
 from .fields import  DateTime000Field, ListField, RangeField, GeoPointField,  ObjectIdField
@@ -147,6 +147,7 @@ class AllFilter(ListFilter):
     " attribute value contains all of provided values "
     lookup_type = 'all'
 
+
 class RangeFilter(Filter):
     " takes foo.min&foo.max and compares with gte/lte"
     lookup_types = ('gte', 'lte')
@@ -177,6 +178,32 @@ class RangeFilter(Filter):
 
         return params
 
+
+class IntersectRangeFilter(Filter):
+    """ range intersection
+    test for intersection of range given in query with range defined by pair of model attrs,
+    specified in sources param
+    """
+    lookup_types = ('gte', 'lte')
+    field_class = RangeField
+
+    def __init__(self, sources, name=None, **kwargs):
+        self.sources=sources
+        super().__init__(name=name, **kwargs)
+
+    @property
+    def target(self):
+        return self.sources
+
+    def filter_params(self, value):
+        if value is None:
+            return {}
+
+        val_min = value.get('min', None)
+        val_max = value.get('max', None)
+        attr_min, attr_max = self.target
+
+        return (Q(**{attr_min:None})|Q(**{attr_min+"__lte": val_max}))&(Q(**{attr_max:None})|Q(**{attr_max+"__gte": val_min}))
 
 
 class GeoFilter(Filter):

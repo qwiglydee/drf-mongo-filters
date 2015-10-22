@@ -253,6 +253,24 @@ class CompoundTests(QuerysetTesting, TestCase):
         qs = fs.filter_queryset(SimpleDoc.objects.all())
         self.assertQuerysetDocs(qs, objects[2:3])
 
+    def test_range_intersect(self):
+        objects = [
+            SimpleDoc.objects.create(f_rng_beg=1, f_rng_end=3),
+            SimpleDoc.objects.create(f_rng_beg=2, f_rng_end=4), # 4-6
+            SimpleDoc.objects.create(f_rng_beg=3, f_rng_end=5), # 4-6
+            SimpleDoc.objects.create(f_rng_beg=4, f_rng_end=6), # 4-6
+            SimpleDoc.objects.create(f_rng_beg=5, f_rng_end=7), # 4-6
+            SimpleDoc.objects.create(f_rng_beg=6, f_rng_end=8), # 4-6
+            SimpleDoc.objects.create(f_rng_beg=7, f_rng_end=9)
+        ]
+
+        class FS(Filterset):
+            foo = filters.IntersectRangeFilter(('f_rng_beg','f_rng_end'), child=fields.IntegerField())
+
+        fs = FS({'foo': {'min':4, 'max':6}})
+        qs = fs.filter_queryset(SimpleDoc.objects.all())
+        self.assertQuerysetDocs(qs, objects[1:-1])
+
 
 class DeepFieldsTests(QuerysetTesting, TestCase):
     def tearDown(self):
