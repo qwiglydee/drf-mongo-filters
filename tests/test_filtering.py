@@ -164,20 +164,6 @@ class BasicTests(QuerysetTesting, TestCase):
         qs = fs.filter_queryset(SimpleDoc.objects.all())
         self.assertQuerysetDocs(qs, objects[1:3])
 
-    def test_datetime(self):
-        objects = [
-            SimpleDoc.objects.create(f_dt=datetime(2015,3,4,8,9,10)),
-            SimpleDoc.objects.create(f_dt=datetime(2015,3,5,9,10,11)),
-            SimpleDoc.objects.create(f_dt=datetime(2015,3,5,10,11,12)),
-            SimpleDoc.objects.create(f_dt=datetime(2015,3,6,11,12,13)),
-        ]
-        class FS(Filterset):
-            dt = filters.DateFilter(source='f_dt')
-
-        fs = FS({'dt': date(2015,3,5)})
-        qs = fs.filter_queryset(SimpleDoc.objects.all())
-        self.assertQuerysetDocs(qs, objects[1:3])
-
     def test_oid(self):
         oid = ObjectId()
         objects = [
@@ -207,22 +193,6 @@ class BasicTests(QuerysetTesting, TestCase):
         fs = FS({'foo': oid})
         qs = fs.filter_queryset(SimpleDoc.objects.all())
         self.assertQuerysetDocs(qs, objects[1:2])
-
-
-    def test_uuid(self):
-        uuid = uuid4()
-        objects = [
-            SimpleDoc.objects.create(f_uuid=uuid4()),
-            SimpleDoc.objects.create(f_uuid=uuid),
-            SimpleDoc.objects.create(f_uuid=uuid4()),
-        ]
-
-        class FS(Filterset):
-            foo = filters.CharFilter(source='f_uuid')
-
-        fs = FS({'foo': uuid})
-        qs = fs.filter_queryset(SimpleDoc.objects.all())
-
 
 class CompoundTests(QuerysetTesting, TestCase):
     def tearDown(self):

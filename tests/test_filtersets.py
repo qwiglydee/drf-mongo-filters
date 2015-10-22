@@ -117,7 +117,6 @@ class ModelTests(TestCase):
         self.assertIsInstance(fs.filters['f_dt'], filters.DateTimeFilter)
         self.assertIsInstance(fs.filters['f_oid'], filters.ObjectIdFilter)
         self.assertIsInstance(fs.filters['f_ref'], filters.ReferenceFilter)
-        self.assertEqual(fs.filters['f_ref'].collection, 'ref_doc')
         self.assertIsInstance(fs.filters['f_uuid'], filters.UUIDFilter)
 
     def test_auto_derivatives(self):
