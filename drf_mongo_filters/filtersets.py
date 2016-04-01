@@ -5,6 +5,7 @@ from mongoengine.queryset.visitor import QNode
 
 from . import filters
 
+
 class FiltersetMeta(type):
     """
     Sets _declared_filters
@@ -12,8 +13,8 @@ class FiltersetMeta(type):
     @classmethod
     def _get_declared_filters(cls, bases, attrs):
         filterlist = [(name, attrs.pop(name))
-                   for name, obj in list(attrs.items())
-                   if isinstance(obj, filters.Filter)]
+                      for name, obj in list(attrs.items())
+                      if isinstance(obj, filters.Filter)]
         filterlist.sort(key=lambda x: x[1]._creation_order)
 
         for base in reversed(bases):
@@ -62,7 +63,7 @@ class BaseFilterset(metaclass=FiltersetMeta):
         convert values to filtering params and apply to queryset
         """
         for name, filt in self.filters.items():
-            val= self.values.get(name, None)
+            val = self.values.get(name, None)
             if name is None:
                 continue
             params = filt.filter_params(val)

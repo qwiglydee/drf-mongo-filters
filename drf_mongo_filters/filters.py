@@ -127,8 +127,8 @@ class ReferenceFilter(ObjectIdFilter):
         """ return filtering params """
         if value is None:
             return {}
-
-        return { '__raw__': { self.target + ".$id": value } }
+        target = ".".join(self.field.source_attrs)
+        return { '__raw__': { target + ".$id": value } }
 
 class ListFilter(Filter):
     " base filter to compare with list of values "
@@ -202,7 +202,6 @@ class IntersectRangeFilter(Filter):
         val_min = value.get('min', None)
         val_max = value.get('max', None)
         attr_min, attr_max = self.target
-
         return (Q(**{attr_min:None})|Q(**{attr_min+"__lte": val_max}))&(Q(**{attr_max:None})|Q(**{attr_max+"__gte": val_min}))
 
 
